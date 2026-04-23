@@ -1,6 +1,7 @@
 import React, { type ReactNode } from "react";
 import clsx from "clsx";
 import Link from "@docusaurus/Link";
+import Translate, { translate } from "@docusaurus/Translate";
 import useDocusaurusContext from "@docusaurus/useDocusaurusContext";
 import Layout from "@theme/Layout";
 import Heading from "@theme/Heading";
@@ -16,30 +17,52 @@ function HomepageHero(): ReactNode {
       <div className="container">
         <div className={styles.heroBadge}>
           <span className={styles.heroBadgeDot} />
-          为研究与工程团队设计的 AI Agent 框架
+          <Translate id="homepage.hero.badge" description="Hero badge tagline">
+            为科学研究设计的 AI Agent 框架
+          </Translate>
         </div>
         <Heading as="h1" className={styles.heroTitle}>
           {siteConfig.title}
-          <span className={styles.heroTitleAccent}> · 让 Agent 真正落地。</span>
+          <span className={styles.heroTitleAccent}>
+            <Translate
+              id="homepage.hero.titleAccent"
+              description="Accent phrase after the product name in hero title"
+            >
+              {" · 让 Agent 真正落地。"}
+            </Translate>
+          </span>
         </Heading>
         <p className={styles.heroSubtitle}>
-          MIRA 是一个开源的项目级 AI 助手框架。把"研究 → 实验 → 报告"这条链路
-          交给 Agent，输入一个目标，输出可复现的实验、可读的报告、可分享的 PPT。
+          <Translate
+            id="homepage.hero.subtitle.line1"
+            description="Hero subtitle, first line"
+          >
+            MIRA 是一个开源的项目级 AI 助手框架。把"研究 → 实验 → 报告"这条链路交给 Agent，输入一个目标，输出可复现的实验、可读的报告、可分享的 PPT。
+          </Translate>
           <br />
-          配套桌面 UI、CLI、PyPI 包、Docker 镜像，飞书 / Slack / Telegram 一并接入。
+          <Translate
+            id="homepage.hero.subtitle.line2"
+            description="Hero subtitle, second line"
+          >
+            配套桌面 UI、CLI、PyPI 包、Docker 镜像，飞书 / Slack / Telegram 一并接入。
+          </Translate>
         </p>
         <div className={styles.heroCtas}>
           <Link
             className={clsx("button button--primary button--lg", styles.heroCtaPrimary)}
             to="/docs/usage/start"
           >
-            10 分钟快速开始 →
+            <Translate id="homepage.hero.cta.quickstart" description="Quickstart CTA button">
+              10 分钟快速开始 →
+            </Translate>
           </Link>
           <Link
             className={clsx("button button--secondary button--lg", styles.heroCtaSecondary)}
             to="/docs"
           >
-            阅读文档
+            <Translate id="homepage.hero.cta.docs" description="Read docs CTA button">
+              阅读文档
+            </Translate>
           </Link>
           <Link
             className={clsx("button button--secondary button--lg", styles.heroCtaGithub)}
@@ -75,10 +98,38 @@ function GitHubIcon(): ReactNode {
 
 function HomepageStats(): ReactNode {
   const stats = [
-    { num: "20+", label: "内置 LLM Provider" },
-    { num: "13", label: "Channel 接入" },
-    { num: "3", label: "形态：CLI / Web / Desktop" },
-    { num: "100%", label: "本地 + 自托管友好" },
+    {
+      num: "20+",
+      label: translate({
+        id: "homepage.stats.providers",
+        description: "Stats label: number of built-in LLM providers",
+        message: "内置 LLM Provider",
+      }),
+    },
+    {
+      num: "13",
+      label: translate({
+        id: "homepage.stats.channels",
+        description: "Stats label: number of channel integrations",
+        message: "Channel 接入",
+      }),
+    },
+    {
+      num: "3",
+      label: translate({
+        id: "homepage.stats.formFactors",
+        description: "Stats label: number of delivery form factors",
+        message: "形态：CLI / Web / Desktop",
+      }),
+    },
+    {
+      num: "100%",
+      label: translate({
+        id: "homepage.stats.selfhost",
+        description: "Stats label: self-host friendliness",
+        message: "本地 + 自托管友好",
+      }),
+    },
   ];
   return (
     <section className={styles.stats}>
@@ -100,8 +151,17 @@ export default function Home(): ReactNode {
   const { siteConfig } = useDocusaurusContext();
   return (
     <Layout
-      title="MIRA · Open-source AI agent framework"
-      description="MIRA 是一个开源的项目级 AI 助手框架，把研究、实验、报告生成端到端交给 Agent。"
+      title={translate({
+        id: "homepage.meta.title",
+        description: "Homepage browser tab title",
+        message: "MIRA · Open-source AI agent framework",
+      })}
+      description={translate({
+        id: "homepage.meta.description",
+        description: "Homepage meta description for SEO",
+        message:
+          "MIRA 是一个开源的项目级 AI 助手框架，把研究、实验、报告生成端到端交给 Agent。",
+      })}
     >
       <HomepageHero />
       <main>

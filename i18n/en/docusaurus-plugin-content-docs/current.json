@@ -1,0 +1,26 @@
+{
+  "version.label": {
+    "message": "Next",
+    "description": "The label for version current"
+  },
+  "sidebar.tutorialSidebar.category.部署与发布": {
+    "message": "部署与发布",
+    "description": "The label for category '部署与发布' in sidebar 'tutorialSidebar'"
+  },
+  "sidebar.tutorialSidebar.category.FAQ": {
+    "message": "FAQ",
+    "description": "The label for category 'FAQ' in sidebar 'tutorialSidebar'"
+  },
+  "sidebar.tutorialSidebar.category.使用文档": {
+    "message": "使用文档",
+    "description": "The label for category '使用文档' in sidebar 'tutorialSidebar'"
+  },
+  "sidebar.tutorialSidebar.category.Agent 配置": {
+    "message": "Agent 配置",
+    "description": "The label for category 'Agent 配置' in sidebar 'tutorialSidebar'"
+  },
+  "sidebar.tutorialSidebar.category.UI 功能导航": {
+    "message": "UI 功能导航",
+    "description": "The label for category 'UI 功能导航' in sidebar 'tutorialSidebar'"
+  }
+}

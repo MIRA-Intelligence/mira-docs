@@ -58,11 +58,32 @@ const config = {
     },
   },
 
-  themes: ["@docusaurus/theme-mermaid"],
+  themes: [
+    "@docusaurus/theme-mermaid",
+    [
+      require.resolve("@easyops-cn/docusaurus-search-local"),
+      /** @type {import("@easyops-cn/docusaurus-search-local").PluginOptions} */
+      ({
+        // 中英混合索引（"zh" 分词器 + "en")
+        language: ["en", "zh"],
+        hashed: true,
+        indexDocs: true,
+        indexBlog: false,
+        indexPages: true,
+        docsRouteBasePath: "/docs",
+        highlightSearchTermsOnTargetPage: true,
+        explicitSearchResultPath: true,
+      }),
+    ],
+  ],
 
   i18n: {
     defaultLocale: "zh-CN",
-    locales: ["zh-CN"],
+    locales: ["zh-CN", "en"],
+    localeConfigs: {
+      "zh-CN": { label: "简体中文", direction: "ltr", htmlLang: "zh-CN" },
+      en: { label: "English", direction: "ltr", htmlLang: "en" },
+    },
   },
 
   presets: [
@@ -108,6 +129,10 @@ const config = {
           {
             href: "https://github.com/MIRA-Intelligence/mira",
             label: "GitHub",
+            position: "right",
+          },
+          {
+            type: "localeDropdown",
             position: "right",
           },
         ],
