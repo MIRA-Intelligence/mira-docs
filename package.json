@@ -1,0 +1,37 @@
+{
+  "name": "mira-docs",
+  "version": "1.0.0",
+  "description": "这是 `{{PROJECT_CORE_NAME}}` 与 `{{PROJECT_UI_NAME}}` 的独立文档仓库草案目录（Markdown-first）。",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "render:docs": "node scripts/render-doc-variables.js",
+    "prestart": "npm run render:docs",
+    "prebuild": "npm run render:docs",
+    "start": "docusaurus start",
+    "build": "docusaurus build",
+    "serve": "docusaurus serve",
+    "clear": "docusaurus clear",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@docusaurus/core": "^3.10.0",
+    "@docusaurus/preset-classic": "^3.10.0",
+    "@docusaurus/theme-mermaid": "^3.10.0",
+    "@mermaid-js/layout-elk": "^0.1.9",
+    "react": "^19.2.5",
+    "react-dom": "^19.2.5"
+  },
+  "devDependencies": {
+    "@types/node": "^25.6.0",
+    "typescript": "^6.0.3"
+  },
+  "overrides": {
+    "webpack": "5.90.1"
+  }
+}

@@ -1,0 +1,42 @@
+/**
+ * Docusaurus custom CSS.
+ * Loaded via presets.classic.theme.customCss in docusaurus.config.js.
+ */
+
+/* ---------- Mermaid: CJK 字体 + 防止 label 裁切 ----------
+ *
+ * 真正起决定作用的是 docusaurus.config.js 里 themeConfig.mermaid.options.themeCSS，
+ * 它会被注入进每个 mermaid <svg> 内部（包括隐藏的“测量 SVG”），保证
+ * 测量与渲染用同一套字体。这里的外部 CSS 只是排版与兜底。
+ */
+
+/* 兜底：哪怕 mermaid 把外框算窄了，也让 foreignObject 不要裁字。 */
+.docusaurus-mermaid-container foreignObject {
+  overflow: visible;
+}
+
+/* HTML labels 走 nowrap，只在显式 <br/> 处换行；改成 normal 会让
+   mermaid 测量时把 div 折成又窄又高，菱形/矩形随之变形。 */
+.docusaurus-mermaid-container .nodeLabel,
+.docusaurus-mermaid-container .label {
+  white-space: nowrap;
+  overflow: visible;
+  line-height: 1.35;
+}
+
+/* edgeLabel 是边上的小标签，允许换行不影响布局，并加底色避免压在线上。 */
+.docusaurus-mermaid-container .edgeLabel {
+  white-space: normal;
+  overflow: visible;
+  line-height: 1.35;
+  background-color: var(--ifm-background-color);
+  padding: 1px 4px;
+  border-radius: 3px;
+}
+
+/* 居中显示。 */
+.docusaurus-mermaid-container {
+  display: flex;
+  justify-content: center;
+  margin: 1.2rem 0;
+}
