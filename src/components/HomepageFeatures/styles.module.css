@@ -1,0 +1,111 @@
+.section {
+  padding: 5rem 0 4rem;
+}
+
+.sectionHeader {
+  text-align: center;
+  max-width: 720px;
+  margin: 0 auto 3rem;
+}
+
+.sectionEyebrow {
+  display: inline-block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ifm-color-primary);
+  margin-bottom: 0.8rem;
+}
+
+.sectionTitle {
+  font-size: clamp(1.8rem, 3.5vw, 2.6rem);
+  letter-spacing: -0.01em;
+  font-weight: 700;
+  margin: 0 0 0.8rem;
+}
+
+.sectionLead {
+  font-size: 1.05rem;
+  color: var(--ifm-color-emphasis-700);
+  margin: 0;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.2rem;
+}
+
+@media (max-width: 996px) {
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.card {
+  position: relative;
+  display: block;
+  padding: 1.6rem 1.6rem 2.4rem;
+  border-radius: 12px;
+  border: 1px solid var(--ifm-color-emphasis-200);
+  background: var(--ifm-background-surface-color);
+  text-decoration: none !important;
+  color: inherit;
+  transition: all 0.18s ease;
+  height: 100%;
+}
+
+.card:hover {
+  border-color: var(--ifm-color-primary);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px -12px rgba(99, 102, 241, 0.25);
+}
+
+.cardEmoji {
+  font-size: 1.8rem;
+  line-height: 1;
+  margin-bottom: 0.9rem;
+}
+
+.cardTitle {
+  font-size: 1.15rem;
+  font-weight: 700;
+  margin: 0 0 0.5rem;
+  color: var(--ifm-heading-color);
+}
+
+.cardDesc {
+  font-size: 0.95rem;
+  line-height: 1.55;
+  color: var(--ifm-color-emphasis-700);
+  margin: 0;
+}
+
+.cardDesc code {
+  font-size: 0.85em;
+  padding: 0.05rem 0.35rem;
+  background: var(--ifm-color-emphasis-100);
+  border-radius: 4px;
+}
+
+.cardArrow {
+  position: absolute;
+  bottom: 1.2rem;
+  right: 1.4rem;
+  font-size: 1.1rem;
+  color: var(--ifm-color-primary);
+  opacity: 0;
+  transition: all 0.18s ease;
+}
+
+.card:hover .cardArrow {
+  opacity: 1;
+  transform: translateX(2px);
+}

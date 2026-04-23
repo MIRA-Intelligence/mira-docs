@@ -1,0 +1,151 @@
+/* ---------- Hero ---------- */
+
+.hero {
+  padding: 5rem 0 4rem;
+  background:
+    radial-gradient(
+      ellipse 80% 50% at 50% -20%,
+      rgba(99, 102, 241, 0.18),
+      transparent 60%
+    ),
+    linear-gradient(180deg, var(--ifm-background-color) 0%, var(--ifm-background-color) 100%);
+  text-align: center;
+}
+
+[data-theme="dark"] .hero {
+  background:
+    radial-gradient(
+      ellipse 80% 50% at 50% -20%,
+      rgba(129, 140, 248, 0.22),
+      transparent 60%
+    ),
+    var(--ifm-background-color);
+}
+
+.heroBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.9rem;
+  border: 1px solid var(--ifm-color-emphasis-300);
+  border-radius: 999px;
+  font-size: 0.875rem;
+  color: var(--ifm-color-emphasis-700);
+  background: var(--ifm-background-surface-color);
+  margin-bottom: 1.6rem;
+}
+
+.heroBadgeDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--ifm-color-primary);
+  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.18);
+  display: inline-block;
+}
+
+.heroTitle {
+  font-size: clamp(2.4rem, 5vw, 4rem);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  font-weight: 800;
+  margin: 0 0 1.2rem;
+  color: var(--ifm-heading-color);
+}
+
+.heroTitleAccent {
+  background: linear-gradient(120deg, var(--ifm-color-primary) 10%, #a78bfa 70%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  font-weight: 800;
+}
+
+.heroSubtitle {
+  font-size: 1.125rem;
+  line-height: 1.65;
+  color: var(--ifm-color-emphasis-700);
+  max-width: 720px;
+  margin: 0 auto 2rem;
+}
+
+.heroCtas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: center;
+  margin-bottom: 2.4rem;
+}
+
+.heroCtaPrimary {
+  font-weight: 600;
+}
+
+.heroCtaSecondary,
+.heroCtaGithub {
+  background: var(--ifm-background-surface-color);
+  border: 1px solid var(--ifm-color-emphasis-300);
+  color: var(--ifm-color-emphasis-900);
+}
+
+.heroCtaGithub:hover {
+  background: var(--ifm-color-emphasis-100);
+}
+
+.heroInstall {
+  display: inline-block;
+  margin: 0;
+  padding: 0.85rem 1.4rem;
+  font-size: 0.95rem;
+  font-family: ui-monospace, SFMono-Regular, "JetBrains Mono", Menlo, Consolas, monospace;
+  background: var(--ifm-background-surface-color);
+  border: 1px solid var(--ifm-color-emphasis-300);
+  border-radius: 8px;
+  color: var(--ifm-color-emphasis-900);
+  text-align: left;
+}
+
+.heroInstallPrompt {
+  color: var(--ifm-color-emphasis-500);
+  user-select: none;
+}
+
+/* ---------- Stats ---------- */
+
+.stats {
+  padding: 2.4rem 0 1.6rem;
+  border-bottom: 1px solid var(--ifm-color-emphasis-200);
+}
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+}
+
+@media (max-width: 768px) {
+  .statsGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.statsItem {
+  text-align: center;
+  padding: 1rem 0.5rem;
+}
+
+.statsNum {
+  font-size: 2.2rem;
+  font-weight: 800;
+  line-height: 1;
+  background: linear-gradient(120deg, var(--ifm-color-primary), #a78bfa);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  margin-bottom: 0.4rem;
+}
+
+.statsLabel {
+  font-size: 0.9rem;
+  color: var(--ifm-color-emphasis-700);
+}

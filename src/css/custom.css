@@ -3,6 +3,56 @@
  * Loaded via presets.classic.theme.customCss in docusaurus.config.js.
  */
 
+/* ---------- 品牌主题（Indigo + Violet） ---------- */
+
+:root {
+  --ifm-color-primary: #6366f1;
+  --ifm-color-primary-dark: #4f46e5;
+  --ifm-color-primary-darker: #4338ca;
+  --ifm-color-primary-darkest: #3730a3;
+  --ifm-color-primary-light: #818cf8;
+  --ifm-color-primary-lighter: #a5b4fc;
+  --ifm-color-primary-lightest: #c7d2fe;
+
+  --ifm-font-family-base:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+    "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC",
+    "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --ifm-heading-font-weight: 700;
+  --ifm-navbar-height: 64px;
+  --docusaurus-highlighted-code-line-bg: rgba(99, 102, 241, 0.12);
+}
+
+[data-theme="dark"] {
+  --ifm-color-primary: #818cf8;
+  --ifm-color-primary-dark: #6366f1;
+  --ifm-color-primary-darker: #4f46e5;
+  --ifm-color-primary-darkest: #4338ca;
+  --ifm-color-primary-light: #a5b4fc;
+  --ifm-color-primary-lighter: #c7d2fe;
+  --ifm-color-primary-lightest: #e0e7ff;
+  --ifm-background-color: #0b0f1a;
+  --ifm-background-surface-color: #131826;
+  --docusaurus-highlighted-code-line-bg: rgba(129, 140, 248, 0.18);
+}
+
+/* navbar 加点高级感 */
+.navbar {
+  border-bottom: 1px solid var(--ifm-color-emphasis-200);
+  backdrop-filter: saturate(180%) blur(8px);
+  background: color-mix(in srgb, var(--ifm-background-color) 88%, transparent);
+}
+
+.navbar__title {
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+/* 文档页面外的容器更宽一点，更有"营销页"气质 */
+.main-wrapper > div:first-child {
+  width: 100%;
+}
+
 /* ---------- Mermaid: CJK 字体 + 防止 label 裁切 ----------
  *
  * 真正起决定作用的是 docusaurus.config.js 里 themeConfig.mermaid.options.themeCSS，

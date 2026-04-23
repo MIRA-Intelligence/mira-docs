@@ -72,8 +72,11 @@ const config = {
       ({
         docs: {
           path: ".generated-docs",
-          routeBasePath: "/",
+          // 文档挂到 /docs，让 / 留给营销首页（src/pages/index.tsx）
+          routeBasePath: "/docs",
           sidebarPath: require.resolve("./sidebars.js"),
+          editUrl:
+            "https://github.com/MIRA-Intelligence/mira-docs/edit/main/",
         },
         blog: false,
         theme: {
@@ -86,15 +89,60 @@ const config = {
   themeConfig:
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
     ({
+      colorMode: {
+        defaultMode: "light",
+        respectPrefersColorScheme: true,
+      },
       navbar: {
-        title: replaceDocVariables("{{PROJECT_DOCS_NAME}}", docVariables),
+        title: "MIRA",
+        logo: {
+          alt: "MIRA logo",
+          src: "img/logo.svg",
+          srcDark: "img/logo-dark.svg",
+        },
         items: [
-          { to: "/", label: "Docs", position: "left" },
+          { to: "/docs/", label: "文档", position: "left" },
+          { to: "/docs/usage/start", label: "快速开始", position: "left" },
+          { to: "/docs/cli-reference", label: "CLI", position: "left" },
+          { to: "/docs/faq/troubleshooting", label: "FAQ", position: "left" },
+          {
+            href: "https://github.com/MIRA-Intelligence/mira",
+            label: "GitHub",
+            position: "right",
+          },
         ],
       },
       footer: {
         style: "dark",
-        copyright: `Copyright © ${new Date().getFullYear()} ${replaceDocVariables("{{PROJECT_ORG_NAME}}", docVariables)}`,
+        links: [
+          {
+            title: "文档",
+            items: [
+              { label: "首页", to: "/docs/" },
+              { label: "快速开始", to: "/docs/usage/start" },
+              { label: "核心概念", to: "/docs/concepts" },
+              { label: "CLI 参考", to: "/docs/cli-reference" },
+            ],
+          },
+          {
+            title: "项目",
+            items: [
+              { label: "MIRA 引擎", href: "https://github.com/MIRA-Intelligence/mira" },
+              { label: "MiraUI", href: "https://github.com/MIRA-Intelligence/mira-ui" },
+              { label: "Docs 仓库", href: "https://github.com/MIRA-Intelligence/mira-docs" },
+              { label: "PyPI mira-engine", href: "https://pypi.org/project/mira-engine/" },
+            ],
+          },
+          {
+            title: "更多",
+            items: [
+              { label: "FAQ", to: "/docs/faq/troubleshooting" },
+              { label: "部署", to: "/docs/deployment/" },
+              { label: "Issues", href: "https://github.com/MIRA-Intelligence/mira/issues" },
+            ],
+          },
+        ],
+        copyright: `Copyright © ${new Date().getFullYear()} ${replaceDocVariables("{{PROJECT_ORG_NAME}}", docVariables)}. Built with Docusaurus.`,
       },
       mermaid: {
         theme: { light: "neutral", dark: "dark" },
