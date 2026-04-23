@@ -2,7 +2,7 @@
 
 `MIRA` 引擎与 `MiraUI` 的官方文档站，Markdown-first，由 [Docusaurus](https://docusaurus.io/) 构建。
 
-- 在线访问：**https://mira-intelligence.github.io/mira-docs/**
+- 在线访问：**https://mira-intelligence.github.io/**（根域名）
 - 引擎仓库：[MIRA-Intelligence/mira](https://github.com/MIRA-Intelligence/mira)
 - UI 仓库：[MIRA-Intelligence/mira-ui](https://github.com/MIRA-Intelligence/mira-ui)
 
@@ -63,10 +63,12 @@ node scripts/check-mermaid.mjs   # 解析所有 *.md/*.mdx 中的 mermaid 块，
 `main` 分支每次 push 触发 [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml)：
 
 ```
-push -> npm ci -> npm run build -> upload-pages-artifact -> deploy-pages
+push -> npm ci -> npm run build -> peaceiris/actions-gh-pages -> mira-intelligence.github.io:main
 ```
 
-无需手动操作，几分钟内更新到 GitHub Pages。
+产物被跨仓推送到 [`mira-intelligence.github.io`](https://github.com/MIRA-Intelligence/mira-intelligence.github.io) 仓库的 `main` 分支，由其 GitHub Pages 托管到根域名。认证用 `PAGES_DEPLOY_KEY` Secret（SSH deploy key，只对目标仓库有写权限）。
+
+> 目标仓库不要手工编辑——每次部署都是 `force_orphan: true` 强推，会覆盖本地提交。
 
 ## 导出 PDF
 
