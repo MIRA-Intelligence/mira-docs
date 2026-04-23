@@ -41,7 +41,7 @@ stateDiagram-v2
 
 - 每条实验对应 `experiments[]` 的一个元素。新建实验时 Agent 会用 `medical-image-dl-pipeline` / `radiomics` / `survival-analysis` 等 skill 落地。
 - 阶段流水线条上的小圆点显示每条实验的 `status`，鼠标悬浮可看摘要。
-- 遇到 `failed` 实验，**不要急着删**，进 [实验详情面板](experiment-detail) 看 `post_mortem` 与日志，多数能就地修复。
+- 遇到 `failed` 实验，**不要急着删**，进 [实验详情面板](./experiment-detail.md) 看 `post_mortem` 与日志，多数能就地修复。
 
 ### 3) Result
 
@@ -50,7 +50,7 @@ stateDiagram-v2
   - `paper_article` → 论文模板
   - `presentation` → PPT 模板
   - `metadata` → 项目归档包（含 `task_plan.json`、`results/*`、参考列表）
-- 详见 [结果导出中心](result-center)。
+- 详见 [结果导出中心](./result-center.md)。
 
 ## 切换阶段时会发生什么
 

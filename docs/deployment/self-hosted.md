@@ -153,7 +153,7 @@ UI 侧通过 `VITE_API_URL=https://mira.example.com` + `VITE_WS_URL=wss://mira.e
 
 ## 不用 Docker — 直接系统服务
 
-适合小团队 / 单机：见 [本地服务（mira-engine）](local-engine-service)。它会注册一个 launchd / systemd / Windows Service，开机自启 `mira gateway`。
+适合小团队 / 单机：见 [本地服务（mira-engine）](./local-engine-service.md)。它会注册一个 launchd / systemd / Windows Service，开机自启 `mira gateway`。
 
 ## 安全 checklist
 

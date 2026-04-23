@@ -63,7 +63,7 @@ UI 最左侧那一栏。
 | 绿色 `Completed` | `completed` 且 `result.output_path` 有效 | 真正交付完成 |
 | 红色 `Failed` | `failed` | 不可恢复错误，详情看日志 |
 
-> **完成判定不是“所有实验跑完”**，而是“最终结果导出存在”。详见 [任务计划与状态同步](task-plan-and-status)。
+> **完成判定不是“所有实验跑完”**，而是“最终结果导出存在”。详见 [任务计划与状态同步](./task-plan-and-status.md)。
 
 ## 验收检查
 

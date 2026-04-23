@@ -47,7 +47,7 @@ flowchart TB
 
 | 情况 | 处理 |
 | --- | --- |
-| 自动修复 3 次仍失败 | 直接进 [实验详情](experiment-detail) 手动补；明显的占位文本可以直接编辑 task_plan.json |
+| 自动修复 3 次仍失败 | 直接进 [实验详情](./experiment-detail.md) 手动补；明显的占位文本可以直接编辑 task_plan.json |
 | 修复回合反复在两个值之间“反复横跳” | 多半是 prompt 不清晰，临时切到 `manual` 模式给 Agent 一段补充说明，再切回 `auto` |
 | 提示字段名你完全没见过 | 检查 `contract_version` 是否被改成了 strict（团队共享 config 时常见） |
 | 项目导出阶段一直被 guardrail 挡在 Experiment | 至少有 1 个实验的 strict 字段没补齐，必须先在该实验上补齐才能进入 Result |

@@ -253,7 +253,7 @@ mira gateway
 - WebSocket：`ws://localhost:18790/ws`
 - REST API： `http://localhost:18790/api`
 
-如果你想改端口：`mira gateway --port 28790`。常驻后台请看 [本地服务（mira-engine）](../deployment/local-engine-service)。
+如果你想改端口：`mira gateway --port 28790`。常驻后台请看 [本地服务（mira-engine）](../deployment/local-engine-service.md)。
 
 > 想直接在终端里聊一下试试，不用 UI？另开一个终端：
 >
@@ -314,7 +314,7 @@ VITE_API_URL=http://localhost:18790
 VITE_WS_URL=ws://localhost:18790/ws
 ```
 
-详见 [Web / Desktop 双模式](ui/desktop-web-mode) 和 [打包与发布](../deployment/release-and-package)。
+详见 [Web / Desktop 双模式](./ui/desktop-web-mode.md) 和 [打包与发布](../deployment/release-and-package.md)。
 
   </TabItem>
 </Tabs>
@@ -344,7 +344,7 @@ VITE_WS_URL=ws://localhost:18790/ws
 - [ ] UI 项目卡片上出现 `completed` 标识。
 - [ ] `mira status` 没有红色项。
 
-任一条不满足，按 [FAQ 与故障排查](../faq/troubleshooting) 对应小节定位。
+任一条不满足，按 [FAQ 与故障排查](../faq/troubleshooting.md) 对应小节定位。
 
 ---
 
@@ -352,22 +352,22 @@ VITE_WS_URL=ws://localhost:18790/ws
 
 ### 用得更顺手
 
-- [核心概念](../concepts) — 弄清楚 task_plan / project / experiment 的边界。
-- [UI 功能总览](ui/) — 把每个面板的快捷键和按钮过一遍。
-- [运行模式与 Profile](ui/run-mode-and-profile) — 学会切到 `auto`，吞吐量翻倍。
+- [核心概念](../concepts.md) — 弄清楚 task_plan / project / experiment 的边界。
+- [UI 功能总览](./ui/index.mdx) — 把每个面板的快捷键和按钮过一遍。
+- [运行模式与 Profile](./ui/run-mode-and-profile.md) — 学会切到 `auto`，吞吐量翻倍。
 
 ### 调优
 
-- [Provider 与运行时参数](agent-config/providers-and-runtime) — 切模型、调温度、改回合上限。
-- [模型路由（Router）模式](agent-config/model-router) — 让便宜模型干便宜的活。
-- [Skills 与 Tools](agent-config/skills-and-tools) — 看看还有哪些 skill 可用，怎么挂自定义 MCP 工具。
+- [Provider 与运行时参数](./agent-config/providers-and-runtime.md) — 切模型、调温度、改回合上限。
+- [模型路由（Router）模式](./agent-config/model-router.md) — 让便宜模型干便宜的活。
+- [Skills 与 Tools](./agent-config/skills-and-tools.md) — 看看还有哪些 skill 可用，怎么挂自定义 MCP 工具。
 
 ### 扩展
 
-- [Channel 配置](agent-config/channels) — 把 Agent 接到飞书/Slack/Telegram，让团队远程指挥。
-- [自托管部署](../deployment/self-hosted) — 把后端搬到团队服务器。
-- [本地服务（mira-engine）](../deployment/local-engine-service) — 让引擎像系统服务一样常驻。
+- [Channel 配置](./agent-config/channels.md) — 把 Agent 接到飞书/Slack/Telegram，让团队远程指挥。
+- [自托管部署](../deployment/self-hosted.md) — 把后端搬到团队服务器。
+- [本地服务（mira-engine）](../deployment/local-engine-service.md) — 让引擎像系统服务一样常驻。
 
 ### 出问题了
 
-- [FAQ 与故障排查](../faq/troubleshooting)
+- [FAQ 与故障排查](../faq/troubleshooting.md)

@@ -4,17 +4,17 @@ slug: /docs-overview
 
 # {{PROJECT_DOCS_NAME}} 文档目录
 
-本页是文档的总目录。**第一次来 → 直接进 [快速开始](usage/start)。**
+本页是文档的总目录。**第一次来 → 直接进 [快速开始](./usage/start.md)。**
 
 ## 推荐阅读路径
 
 | 角色 | 路径 |
 | --- | --- |
-| 新用户 | [快速开始](usage/start) → [核心概念](concepts) → [UI 功能总览](usage/ui/) → [结果导出中心](usage/ui/result-center) |
-| 配置/调优 | [Agent 配置](usage/agent-config/) → [Provider](usage/agent-config/providers-and-runtime) → [模型路由](usage/agent-config/model-router) → [Skills 与 Tools](usage/agent-config/skills-and-tools) |
-| 运维/部署 | [本地服务](deployment/local-engine-service) → [自托管](deployment/self-hosted) → [打包与发布](deployment/release-and-package) |
-| 排障 | [FAQ 与故障排查](faq/troubleshooting) |
-| 命令行用户 | [CLI 命令参考](cli-reference) |
+| 新用户 | [快速开始](./usage/start.md) → [核心概念](./concepts.md) → [UI 功能总览](./usage/ui/index.mdx) → [结果导出中心](./usage/ui/result-center.md) |
+| 配置/调优 | [Agent 配置](./usage/agent-config/README.md) → [Provider](./usage/agent-config/providers-and-runtime.md) → [模型路由](./usage/agent-config/model-router.md) → [Skills 与 Tools](./usage/agent-config/skills-and-tools.md) |
+| 运维/部署 | [本地服务](./deployment/local-engine-service.md) → [自托管](./deployment/self-hosted.md) → [打包与发布](./deployment/release-and-package.md) |
+| 排障 | [FAQ 与故障排查](./faq/troubleshooting.md) |
+| 命令行用户 | [CLI 命令参考](./cli-reference.md) |
 
 ## 文档分区
 

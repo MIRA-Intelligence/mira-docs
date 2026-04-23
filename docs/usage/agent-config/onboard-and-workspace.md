@@ -138,7 +138,7 @@ rsync -av --delete ~/.mira/ user@host:~/.mira/
 3. 在 `~/.mira/.migrated-from-medpilot` 写一个时间戳，避免重复迁移。
 4. 把 `MEDPILOT_*` 环境变量在内存中映射为 `MIRA_*`（仅当 `MIRA_*` 未设置时）。
 
-不需要任何手工动作。如果迁移没发生（例如两个目录都已存在），按 [FAQ §10](../../faq/troubleshooting) 手动处理。
+不需要任何手工动作。如果迁移没发生（例如两个目录都已存在），按 [FAQ §10](../../faq/troubleshooting.md) 手动处理。
 
 ## 验收检查
 

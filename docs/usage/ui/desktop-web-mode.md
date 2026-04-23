@@ -62,7 +62,7 @@ npm run build:web
 # 产物在 dist/，把它扔到任意静态服务器（nginx / caddy）即可
 ```
 
-把 nginx 反代加上 `/api` 与 `/ws` 转到 `mira gateway` 端口就完成部署。模板见 [自托管部署](../../deployment/self-hosted)。
+把 nginx 反代加上 `/api` 与 `/ws` 转到 `mira gateway` 端口就完成部署。模板见 [自托管部署](../../deployment/self-hosted.md)。
 
 ## Desktop 模式
 

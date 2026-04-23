@@ -4,5 +4,5 @@
 
 > **快速入口**：`mira status` → 看 `~/.mira/logs/agent-service.log` → 打开有问题项目的 `task_plan.json`。
 
-- [故障排查总览](troubleshooting) — 15 个最常见问题的定位顺序与解法
+- [故障排查总览](./troubleshooting.md) — 15 个最常见问题的定位顺序与解法
 

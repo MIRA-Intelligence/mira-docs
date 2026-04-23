@@ -212,7 +212,7 @@ flowchart TB
 - 飞书事件回调 401？检查 `verificationToken` 与 `encryptKey` 是否完全匹配。
 - 长消息被截断？看 `channels.<name>.maxBodyChars`（邮件）或对应平台限制。
 
-详见 [FAQ §7](../../faq/troubleshooting)。
+详见 [FAQ §7](../../faq/troubleshooting.md)。
 
 ## 验收检查
 

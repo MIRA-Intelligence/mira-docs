@@ -37,7 +37,7 @@ flowchart TB
    # 期望返回 {"status":"ok",...}
    ```
 2. 端口对吗？UI 的 `VITE_API_URL` / `VITE_WS_URL` 与 `mira gateway --port` 一致？
-3. 跨域被挡了吗？自托管反代时 nginx 的 `/ws` location 必须带 `Upgrade` / `Connection: upgrade`，详见 [自托管部署](../deployment/self-hosted)。
+3. 跨域被挡了吗？自托管反代时 nginx 的 `/ws` location 必须带 `Upgrade` / `Connection: upgrade`，详见 [自托管部署](../deployment/self-hosted.md)。
 4. 防火墙 / VPN 拦了 18790？`lsof -iTCP:18790 -sTCP:LISTEN` 验证后端在听；浏览器 DevTools → Network → WS 看握手响应码。
 
 ## 2. 项目状态不一致（UI vs 文件）
@@ -49,7 +49,7 @@ flowchart TB
 3. 还不行就以 `task_plan.json` 为准。可能是 WS 短暂断开漏推。
 4. 长期反复出现 → 检查后端日志中 `task_plan.update` 事件是否正常发出。
 
-详见 [实时同步机制](../usage/ui/realtime-sync) 与 [任务计划与状态同步](../usage/ui/task-plan-and-status)。
+详见 [实时同步机制](../usage/ui/realtime-sync.md) 与 [任务计划与状态同步](../usage/ui/task-plan-and-status.md)。
 
 ## 3. Provider 401 / 403 / “Unauthorized”
 
@@ -58,7 +58,7 @@ flowchart TB
 3. `provider: "auto"` 时是不是被自动匹配到了错的家？显式写 `provider: "openrouter"` 等。
 4. Azure OpenAI 必须给 `apiBase` + `extraHeaders.api-version`；model 字段是 deployment 名而非模型名。
 
-详见 [Provider 与运行时参数](../usage/agent-config/providers-and-runtime)。
+详见 [Provider 与运行时参数](../usage/agent-config/providers-and-runtime.md)。
 
 ## 4. “实验都完成了但项目没 completed”
 
@@ -71,16 +71,16 @@ flowchart TB
 3. `output_path` 指向的文件在磁盘上真的存在？
 4. 任一条不满足 → 进 Result 阶段重新触发一次导出。
 
-详见 [结果导出中心](../usage/ui/result-center)。
+详见 [结果导出中心](../usage/ui/result-center.md)。
 
 ## 5. guardrail 反复提示缺字段
 
-1. 在 [实验详情面板](../usage/ui/experiment-detail) 定位是哪几个字段缺。
+1. 在 [实验详情面板](../usage/ui/experiment-detail.md) 定位是哪几个字段缺。
 2. 直接在 UI 里给出具体文字（不要写 `TODO` / `待补充`，guardrail 把它们当“没填”）。
 3. 如果 strict 太严打扰节奏，临时切回 `contract_version: v1` 走完探索期，再升回 strict 让 guardrail 一次补齐。
 4. 自动修复 3 次仍失败 → 切到 `manual` 模式，给 Agent 一段补充 prompt 指明该字段含义。
 
-详见 [Guardrail 与自动修复](../usage/ui/guardrail-and-auto-repair)。
+详见 [Guardrail 与自动修复](../usage/ui/guardrail-and-auto-repair.md)。
 
 ## 6. 端口被占（5173 / 18790 / 8900）
 
@@ -110,7 +110,7 @@ UI 端要同步 `VITE_API_URL` / `VITE_WS_URL`。
 5. 飞书事件回调 401 → 仔细比对 `verificationToken` / `encryptKey`，注意尾部空格。
 6. Slack `socket` 模式不需要公网；`events` 模式必须有公网回调地址。
 
-详见 [Channel 配置](../usage/agent-config/channels)。
+详见 [Channel 配置](../usage/agent-config/channels.md)。
 
 ## 8. Windows CI / 本地有 `Event loop is closed` 警告
 
@@ -189,7 +189,7 @@ curl http://localhost:11434/api/tags    # 应返回模型列表
 | Linux | 用户级 systemd 默认登录退出就停。`loginctl enable-linger $USER` 后才会一直在 |
 | Windows | 默认服务就是 “自动”。在服务管理器里确认 `MiraEngine` 启动类型是 “自动” |
 
-详见 [本地服务（mira-engine）](../deployment/local-engine-service)。
+详见 [本地服务（mira-engine）](../deployment/local-engine-service.md)。
 
 ## 15. 还没解决？
 

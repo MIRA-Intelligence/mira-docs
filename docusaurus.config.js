@@ -48,11 +48,13 @@ const config = {
   trailingSlash: false,
   deploymentBranch: "gh-pages",
 
-  onBrokenLinks: "warn",
+  // 失败而不是默默把 broken link 改写成 404.html。
+  // 之前就因为 warn 模式把"使用文档"全部链接吞成 404 才发现这个坑。
+  onBrokenLinks: "throw",
   markdown: {
     mermaid: true,
     hooks: {
-      onBrokenMarkdownLinks: "warn",
+      onBrokenMarkdownLinks: "throw",
     },
   },
 

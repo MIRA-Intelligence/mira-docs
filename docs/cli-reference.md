@@ -126,7 +126,7 @@ Commands:
 - `mira channels status`：列出已启用 channel 与其登录状态。
 - `mira channels login <name>`：触发 channel 的登录流程（如 OAuth）。
 
-详细的 channel 配置见 [Channel 配置](usage/agent-config/channels)。
+详细的 channel 配置见 [Channel 配置](./usage/agent-config/channels.md)。
 
 ---
 

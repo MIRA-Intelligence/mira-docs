@@ -59,7 +59,7 @@ UI 项目卡片上的 `Completed` 徽章是 **以 `result.output_path` 是否合
 ## 常见问题
 
 - **导出按钮灰着按不动**：`task_plan.json.experiments[]` 至少要有一条 `completed` 才允许导出。
-- **导出失败**：90% 是 strict 字段缺失。看日志中的 guardrail 提示，回到 [实验详情](experiment-detail) 补齐再导。
+- **导出失败**：90% 是 strict 字段缺失。看日志中的 guardrail 提示，回到 [实验详情](./experiment-detail.md) 补齐再导。
 - **想换模板**：所有导出 skill 的 Markdown 模板都在 `mira_engine/skills/export/<type>/` 下，可以拷到 `~/.mira/workspace/skills/export/<type>/` 覆盖。
 
 ## 验收检查

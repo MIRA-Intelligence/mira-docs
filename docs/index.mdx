@@ -11,11 +11,11 @@ import TabItem from '@theme/TabItem';
 `{{PROJECT_CORE_NAME}}` 是面向 **医学 AI 研究** 的轻量级开源 Agent 框架；`{{PROJECT_UI_NAME}}` 是它的桌面/Web 操作台。本站把两者的安装、配置、运行、部署、排障汇总到一处，帮你从“拿到代码”到“跑出第一个项目交付物”最快只用 10 分钟。
 
 > **现在你在哪里？**
-> - 第一次接触 `{{PROJECT_CORE_NAME}}`：直接进入 [快速开始](usage/start)。
-> - 想理解“项目 / 实验 / 任务计划 / Profile” 这些术语：先看 [核心概念](concepts)。
-> - 已经在用，需要调模型/Provider：去 [Agent 配置](usage/agent-config/)。
-> - 准备上线/打包：去 [部署](deployment/)。
-> - 出问题了：去 [FAQ 与故障排查](faq/troubleshooting)。
+> - 第一次接触 `{{PROJECT_CORE_NAME}}`：直接进入 [快速开始](./usage/start.md)。
+> - 想理解“项目 / 实验 / 任务计划 / Profile” 这些术语：先看 [核心概念](./concepts.md)。
+> - 已经在用，需要调模型/Provider：去 [Agent 配置](./usage/agent-config/README.md)。
+> - 准备上线/打包：去 [部署](./deployment/README.md)。
+> - 出问题了：去 [FAQ 与故障排查](./faq/troubleshooting.md)。
 
 ---
 
@@ -83,7 +83,7 @@ flowchart LR
 
 适合：临床科研 / 影像组 / 学生组 — 不想写命令行，想看进度可视化。
 
-入口：[快速开始](usage/start) → [UI 功能总览](usage/ui/)
+入口：[快速开始](./usage/start.md) → [UI 功能总览](./usage/ui/index.mdx)
 
   </TabItem>
   <TabItem value="cli" label="终端 CLI（开发者 / 一次性脚本）">
@@ -92,7 +92,7 @@ flowchart LR
 
 适合：原型开发 / CI / 把 Mira 嵌入已有流水线。
 
-入口：[CLI 命令参考](cli-reference) → [Provider 与运行时](usage/agent-config/providers-and-runtime)
+入口：[CLI 命令参考](./cli-reference.md) → [Provider 与运行时](./usage/agent-config/providers-and-runtime.md)
 
   </TabItem>
   <TabItem value="server" label="自托管 / 团队共享">
@@ -101,20 +101,20 @@ flowchart LR
 
 适合：实验室 / 公司内部团队。
 
-入口：[自托管部署](deployment/self-hosted) → [Channel 配置](usage/agent-config/channels)
+入口：[自托管部署](./deployment/self-hosted.md) → [Channel 配置](./usage/agent-config/channels.md)
 
   </TabItem>
 </Tabs>
 
 ## 推荐起步路线
 
-1. 完成 [快速开始](usage/start)（约 10 分钟，含装环境）。
-2. 熟悉 [核心概念](concepts) 与 [UI 功能总览](usage/ui/)。
-3. 跑通第一个 [结果导出](usage/ui/result-center)。
-4. 按需精修 [Agent 配置](usage/agent-config/) 或部署 [自托管](deployment/self-hosted)。
-5. 出问题查 [FAQ 与故障排查](faq/troubleshooting)。
+1. 完成 [快速开始](./usage/start.md)（约 10 分钟，含装环境）。
+2. 熟悉 [核心概念](./concepts.md) 与 [UI 功能总览](./usage/ui/index.mdx)。
+3. 跑通第一个 [结果导出](./usage/ui/result-center.md)。
+4. 按需精修 [Agent 配置](./usage/agent-config/README.md) 或部署 [自托管](./deployment/self-hosted.md)。
+5. 出问题查 [FAQ 与故障排查](./faq/troubleshooting.md)。
 
-> **从 MedPilot 升级而来？** 启动新版本时 `{{PROJECT_CORE_NAME}}` 会自动把 `~/.medpilot/` 迁移到 `~/.mira/`，并对 `MEDPILOT_*` 环境变量做一次性兼容映射；UI 的 `localStorage` 设置也会自动迁移。如果发现没生效，请按 [FAQ §10](faq/troubleshooting) 手动迁移。
+> **从 MedPilot 升级而来？** 启动新版本时 `{{PROJECT_CORE_NAME}}` 会自动把 `~/.medpilot/` 迁移到 `~/.mira/`，并对 `MEDPILOT_*` 环境变量做一次性兼容映射；UI 的 `localStorage` 设置也会自动迁移。如果发现没生效，请按 [FAQ §10](./faq/troubleshooting.md) 手动迁移。
 
 ---
 
