@@ -9,6 +9,8 @@ import TabItem from '@theme/TabItem';
 
 本节带你从“一台干净的电脑”到“在 UI 里看到第一个项目跑出结果”。全程约 10 分钟（不含模型调用本身的时间）。
 
+> 想走“本地优先”的最省事路径：直接安装 `MiraUI-bundle`，它会在首启时自动帮你注册并启动本机 `mira-engine`。如果你要把 agent 放到远程服务器，请仍然按下面步骤单独安装远端 `mira`，再让 UI 用远程连接模式接入。
+
 ```mermaid
 flowchart LR
     A[准备环境] --> B[安装 mira 引擎]

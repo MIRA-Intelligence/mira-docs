@@ -26,6 +26,7 @@ flowchart LR
 | --- | --- | --- |
 | UI 静态站 | （任意静态托管，一次 `npm run build:web`） | 手动 / CI |
 | UI 桌面安装包 | `mira-ui` 仓库 `desktop-release.yml` | 推 tag `v*` |
+| UI 本地整合包 (`MiraUI-bundle`) | `mira-ui` 仓库 `desktop-release-bundle.yml` | 推 tag `bundle-v*` 或手动 dispatch |
 | mira-engine PyPI | `mira` 仓库 `agent-release.yml` | 推 tag `v*` |
 | mira-engine 单文件二进制 | 同上，`agent-release.yml` 里 PyInstaller 步骤 | 推 tag `v*` |
 | 联合 release 校验 | `release-train.yml` (workflow_dispatch) | 手动指定 `agent_tag + ui_tag` |
@@ -46,6 +47,10 @@ npm run build:desktop
 
 # 出当前平台安装包（产物：release/）
 npm run dist
+
+# 出本地整合包（产物：release-bundle/）
+npm run dist:bundle:mac
+npm run dist:bundle:win
 ```
 
 | 平台 | 安装包文件名（约定） |
@@ -53,6 +58,15 @@ npm run dist
 | macOS | `MiraUI-<ver>-mac-<arch>.dmg` |
 | Windows | `MiraUI-<ver>-win-<arch>-setup.exe` |
 | Linux | `MiraUI-<ver>-linux-<arch>.AppImage` |
+
+本地整合包命名约定：
+
+| 平台 | 安装包文件名（约定） |
+| --- | --- |
+| macOS | `MiraUI-bundle-<ver>-mac-<arch>.dmg` |
+| Windows | `MiraUI-bundle-<ver>-win-<arch>-setup.exe` |
+
+`MiraUI-bundle` 会把平台对应的 `mira-engine` 单文件二进制一起打包进 Electron 安装包，并在首启时自动注册/拉起本地 service。
 
 > Electron 元数据在 `mira-ui/package.json`：`name = "mira-ui"`、`productName = "MiraUI"`、`appId = "com.projectmira.miraui"`。改了这些会影响安装包标识，请慎重。
 
