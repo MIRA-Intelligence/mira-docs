@@ -40,13 +40,13 @@ const config = {
   title: replaceDocVariables("{{PROJECT_DOCS_NAME}}", docVariables),
   tagline: "Markdown-first docs for core + UI",
 
-  // GitHub Pages 项目站点：https://mira-intelligence.github.io/mira-docs/
+  // GitHub Pages Org 主页：https://mira-intelligence.github.io/
+  // 源码仍在 mira-docs，构建产物由 CI 跨仓部署到 mira-intelligence.github.io 仓库的 main。
   url: "https://mira-intelligence.github.io",
-  baseUrl: "/mira-docs/",
+  baseUrl: "/",
   organizationName: "MIRA-Intelligence",
-  projectName: "mira-docs",
+  projectName: "mira-intelligence.github.io",
   trailingSlash: false,
-  deploymentBranch: "gh-pages",
 
   // 失败而不是默默把 broken link 改写成 404.html。
   // 之前就因为 warn 模式把"使用文档"全部链接吞成 404 才发现这个坑。

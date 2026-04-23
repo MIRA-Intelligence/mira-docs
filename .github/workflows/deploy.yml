@@ -5,17 +5,18 @@ on:
     branches: [main]
   workflow_dispatch:
 
-permissions:
-  contents: read
-  pages: write
-  id-token: write
-
+# 站点实际对外仓库是 MIRA-Intelligence/mira-intelligence.github.io。
+# 这里我们构建 Docusaurus，然后用 peaceiris/actions-gh-pages 以 SSH deploy key
+# 的身份把 build/ 强推到那个仓库的 main 分支，由 GitHub Pages 托管根域名。
 concurrency:
-  group: pages
+  group: deploy-pages
   cancel-in-progress: false
 
+permissions:
+  contents: read
+
 jobs:
-  build:
+  build-and-deploy:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -30,21 +31,18 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build
+      - name: Build (all locales)
         run: npm run build
 
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
+      - name: Publish to mira-intelligence.github.io
+        uses: peaceiris/actions-gh-pages@v4
         with:
-          path: build
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+          deploy_key: ${{ secrets.PAGES_DEPLOY_KEY }}
+          external_repository: MIRA-Intelligence/mira-intelligence.github.io
+          publish_branch: main
+          publish_dir: ./build
+          # 保留 .git 但每次强推，不累计历史垃圾
+          force_orphan: true
+          user_name: "mira-docs-bot"
+          user_email: "mira-docs-bot@users.noreply.github.com"
+          commit_message: "Deploy mira-docs @ ${{ github.sha }}"
