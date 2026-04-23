@@ -115,7 +115,8 @@ const config = {
         respectPrefersColorScheme: true,
       },
       navbar: {
-        title: "MIRA",
+        // 不设 title：navbar 只显示 logo 图，避免和 logo 自带的 wordmark 重复。
+        // 浏览器 tab 标题仍由 siteConfig.title 控制。
         logo: {
           alt: "MIRA logo",
           src: "img/logo.svg",

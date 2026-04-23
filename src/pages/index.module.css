@@ -45,12 +45,36 @@
 }
 
 .heroTitle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.55rem;
   font-size: clamp(2.4rem, 5vw, 4rem);
   line-height: 1.1;
   letter-spacing: -0.02em;
   font-weight: 800;
   margin: 0 0 1.2rem;
   color: var(--ifm-heading-color);
+}
+
+.heroLogoLight,
+.heroLogoDark {
+  height: clamp(3rem, 5vw, 4.5rem);
+  width: auto;
+  display: block;
+}
+
+.heroLogoDark {
+  display: none;
+}
+
+[data-theme="dark"] .heroLogoLight {
+  display: none;
+}
+
+[data-theme="dark"] .heroLogoDark {
+  display: block;
 }
 
 .heroTitleAccent {

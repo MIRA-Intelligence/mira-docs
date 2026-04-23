@@ -2,7 +2,7 @@ import React, { type ReactNode } from "react";
 import clsx from "clsx";
 import Link from "@docusaurus/Link";
 import Translate, { translate } from "@docusaurus/Translate";
-import useDocusaurusContext from "@docusaurus/useDocusaurusContext";
+import useBaseUrl from "@docusaurus/useBaseUrl";
 import Layout from "@theme/Layout";
 import Heading from "@theme/Heading";
 import HomepageFeatures from "../components/HomepageFeatures";
@@ -11,7 +11,8 @@ import HomepageShowcase from "../components/HomepageShowcase";
 import styles from "./index.module.css";
 
 function HomepageHero(): ReactNode {
-  const { siteConfig } = useDocusaurusContext();
+  const heroLogoLight = useBaseUrl("/img/logo.svg");
+  const heroLogoDark = useBaseUrl("/img/logo-dark.svg");
   return (
     <header className={clsx("hero", styles.hero)}>
       <div className="container">
@@ -22,7 +23,8 @@ function HomepageHero(): ReactNode {
           </Translate>
         </div>
         <Heading as="h1" className={styles.heroTitle}>
-          MIRA
+          <img src={heroLogoLight} alt="MIRA" className={styles.heroLogoLight} />
+          <img src={heroLogoDark} alt="MIRA" className={styles.heroLogoDark} />
           <span className={styles.heroTitleAccent}>
             <Translate
               id="homepage.hero.titleAccent"
@@ -148,7 +150,6 @@ function HomepageStats(): ReactNode {
 }
 
 export default function Home(): ReactNode {
-  const { siteConfig } = useDocusaurusContext();
   return (
     <Layout
       title={translate({
