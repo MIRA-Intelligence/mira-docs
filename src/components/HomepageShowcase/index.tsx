@@ -36,7 +36,7 @@ export default function HomepageShowcase(): ReactNode {
                   </Translate>
                 </strong>
                 <Translate id="homepage.showcase.bullet.realtime.body">
-                  {"：WebSocket 推 + REST 兜底，状态从 task_plan.json 一手获取。"}
+                  {"：WebSocket 推 + REST 兜底，实验状态实时更新。"}
                 </Translate>
               </li>
               <li>
@@ -46,7 +46,7 @@ export default function HomepageShowcase(): ReactNode {
                   </Translate>
                 </strong>
                 <Translate id="homepage.showcase.bullet.forms.body">
-                  {"：浏览器开发，Electron 打包，本地自动 spawn mira-engine。"}
+                  {"：浏览器开发，Electron 打包，打通前端后端。"}
                 </Translate>
               </li>
               <li>
@@ -56,7 +56,7 @@ export default function HomepageShowcase(): ReactNode {
                   </Translate>
                 </strong>
                 <Translate id="homepage.showcase.bullet.rollback.body">
-                  {"：每个实验的 prompt、tool 调用、guardrail 修复都有完整 trace。"}
+                  {"：每个实验的 prompt、tool 调用、结果都有完整 trace。"}
                 </Translate>
               </li>
             </ul>

@@ -18,17 +18,17 @@ function HomepageHero(): ReactNode {
         <div className={styles.heroBadge}>
           <span className={styles.heroBadgeDot} />
           <Translate id="homepage.hero.badge" description="Hero badge tagline">
-            为科学研究设计的 AI Agent 框架
+            为科学研究设计的 AI Agent
           </Translate>
         </div>
         <Heading as="h1" className={styles.heroTitle}>
-          {siteConfig.title}
+          MIRA
           <span className={styles.heroTitleAccent}>
             <Translate
               id="homepage.hero.titleAccent"
               description="Accent phrase after the product name in hero title"
             >
-              {" · 让 Agent 真正落地。"}
+              {" · 让 Agent 服务于科研。"}
             </Translate>
           </span>
         </Heading>
@@ -37,14 +37,14 @@ function HomepageHero(): ReactNode {
             id="homepage.hero.subtitle.line1"
             description="Hero subtitle, first line"
           >
-            MIRA 是一个开源的项目级 AI 助手框架。把"研究 → 实验 → 报告"这条链路交给 Agent，输入一个目标，输出可复现的实验、可读的报告、可分享的 PPT。
+            MIRA 是一个开源的项目级 AI 助手。把"研究 → 实验 → 报告"这条链路交给 Agent，输入一个目标，输出可复现的实验、可读的报告、可分享的 PPT。
           </Translate>
           <br />
           <Translate
             id="homepage.hero.subtitle.line2"
             description="Hero subtitle, second line"
           >
-            配套桌面 UI、CLI、PyPI 包、Docker 镜像，飞书 / Slack / Telegram 一并接入。
+            配套专属桌面 UI、CLI、PyPI包、Docker镜像，飞书 / Slack / QQ 一并接入。
           </Translate>
         </p>
         <div className={styles.heroCtas}>

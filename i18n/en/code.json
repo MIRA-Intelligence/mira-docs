@@ -362,11 +362,11 @@
     "description": "The title of the tag list page"
   },
   "homepage.hero.badge": {
-    "message": "The AI agent framework built for research",
+    "message": "The AI agent built for research",
     "description": "Hero badge tagline"
   },
   "homepage.hero.titleAccent": {
-    "message": " · Put your agent to work.",
+    "message": " · Put your agent to research.",
     "description": "Accent phrase after the product name in hero title"
   },
   "homepage.hero.subtitle.line1": {
