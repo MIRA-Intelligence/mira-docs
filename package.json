@@ -1,7 +1,7 @@
 {
   "name": "mira-docs",
   "version": "1.0.0",
-  "description": "这是 `{{PROJECT_CORE_NAME}}` 与 `{{PROJECT_UI_NAME}}` 的独立文档仓库草案目录（Markdown-first）。",
+  "description": "MIRA engine and MiraUI documentation site (Docusaurus, Markdown-first).",
   "main": "index.js",
   "directories": {
     "doc": "docs"
