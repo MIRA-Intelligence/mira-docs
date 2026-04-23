@@ -101,7 +101,7 @@ const config = {
           srcDark: "img/logo-dark.svg",
         },
         items: [
-          { to: "/docs/", label: "文档", position: "left" },
+          { to: "/docs", label: "文档", position: "left" },
           { to: "/docs/usage/start", label: "快速开始", position: "left" },
           { to: "/docs/cli-reference", label: "CLI", position: "left" },
           { to: "/docs/faq/troubleshooting", label: "FAQ", position: "left" },
@@ -118,7 +118,7 @@ const config = {
           {
             title: "文档",
             items: [
-              { label: "首页", to: "/docs/" },
+              { label: "首页", to: "/docs" },
               { label: "快速开始", to: "/docs/usage/start" },
               { label: "核心概念", to: "/docs/concepts" },
               { label: "CLI 参考", to: "/docs/cli-reference" },
@@ -137,7 +137,7 @@ const config = {
             title: "更多",
             items: [
               { label: "FAQ", to: "/docs/faq/troubleshooting" },
-              { label: "部署", to: "/docs/deployment/" },
+              { label: "部署", to: "/docs/deployment" },
               { label: "Issues", href: "https://github.com/MIRA-Intelligence/mira/issues" },
             ],
           },

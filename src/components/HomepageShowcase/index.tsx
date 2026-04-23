@@ -36,7 +36,7 @@ export default function HomepageShowcase(): ReactNode {
               </li>
             </ul>
             <div className={styles.actions}>
-              <Link className="button button--primary" to="/docs/usage/ui/">
+              <Link className="button button--primary" to="/docs/usage/ui">
                 查看 UI 功能 →
               </Link>
               <Link

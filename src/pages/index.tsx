@@ -37,7 +37,7 @@ function HomepageHero(): ReactNode {
           </Link>
           <Link
             className={clsx("button button--secondary button--lg", styles.heroCtaSecondary)}
-            to="/docs/"
+            to="/docs"
           >
             阅读文档
           </Link>

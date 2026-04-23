@@ -3,3 +3,4 @@ node_modules
 build
 .generated-docs
 .DS_Store
+.cursor/
