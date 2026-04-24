@@ -12,8 +12,8 @@ import HomepageShowcase from "../components/HomepageShowcase";
 import styles from "./index.module.css";
 
 function HomepageHero(): ReactNode {
-  const heroLogoLight = useBaseUrl("/img/logo.svg");
-  const heroLogoDark = useBaseUrl("/img/logo-dark.svg");
+  const heroLogoLight = useBaseUrl("/img/logo-anim.webp");
+  const heroLogoDark = useBaseUrl("/img/logo-dark-anim.webp");
   return (
     <header className={clsx("hero", styles.hero)}>
       <div className="container">
@@ -38,7 +38,7 @@ function HomepageHero(): ReactNode {
               id="homepage.hero.titleAccent"
               description="Accent phrase after the product name in hero title"
             >
-              {" · 让 Agent 服务于科研。"}
+              {" · 让 Agent 服务于科研"}
             </Translate>
           </span>
         </Heading>
