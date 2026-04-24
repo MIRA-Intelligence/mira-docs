@@ -58,22 +58,14 @@
   color: var(--ifm-heading-color);
 }
 
-.heroLogoLight,
-.heroLogoDark {
+.heroLogo {
+  display: inline-flex;
+  align-items: center;
+}
+
+.heroLogo :global(img) {
   height: clamp(3rem, 5vw, 4.5rem);
   width: auto;
-  display: block;
-}
-
-.heroLogoDark {
-  display: none;
-}
-
-[data-theme="dark"] .heroLogoLight {
-  display: none;
-}
-
-[data-theme="dark"] .heroLogoDark {
   display: block;
 }
 
@@ -107,13 +99,17 @@
 
 .heroCtaSecondary,
 .heroCtaGithub {
-  background: var(--ifm-background-surface-color);
-  border: 1px solid var(--ifm-color-emphasis-300);
-  color: var(--ifm-color-emphasis-900);
+  --ifm-button-background-color: var(--ifm-background-surface-color);
+  --ifm-button-border-color: var(--ifm-color-emphasis-300);
+  --ifm-button-color: var(--ifm-font-color-base);
+  --ifm-button-hover-background-color: var(--ifm-color-emphasis-200);
+  background: var(--ifm-button-background-color);
+  border: 1px solid var(--ifm-button-border-color);
 }
 
+.heroCtaSecondary:hover,
 .heroCtaGithub:hover {
-  background: var(--ifm-color-emphasis-100);
+  --ifm-button-background-color: var(--ifm-button-hover-background-color);
 }
 
 .heroInstall {

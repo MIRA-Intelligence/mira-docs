@@ -18,7 +18,7 @@ export default function HomepageShowcase(): ReactNode {
             </div>
             <Heading as="h2" className={styles.title}>
               <Translate id="homepage.showcase.title">
-                一个为 Agent 而生的工作台
+                一个为科研 Agent 而生的工作台
               </Translate>
             </Heading>
             <p className={styles.lead}>

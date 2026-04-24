@@ -5,6 +5,7 @@ import Translate, { translate } from "@docusaurus/Translate";
 import useBaseUrl from "@docusaurus/useBaseUrl";
 import Layout from "@theme/Layout";
 import Heading from "@theme/Heading";
+import ThemedImage from "@theme/ThemedImage";
 import HomepageFeatures from "../components/HomepageFeatures";
 import HomepageShowcase from "../components/HomepageShowcase";
 
@@ -23,8 +24,15 @@ function HomepageHero(): ReactNode {
           </Translate>
         </div>
         <Heading as="h1" className={styles.heroTitle}>
-          <img src={heroLogoLight} alt="MIRA" className={styles.heroLogoLight} />
-          <img src={heroLogoDark} alt="MIRA" className={styles.heroLogoDark} />
+          <span className={styles.heroLogo}>
+            <ThemedImage
+              alt="MIRA"
+              sources={{
+                light: heroLogoLight,
+                dark: heroLogoDark,
+              }}
+            />
+          </span>
           <span className={styles.heroTitleAccent}>
             <Translate
               id="homepage.hero.titleAccent"
@@ -59,7 +67,7 @@ function HomepageHero(): ReactNode {
             </Translate>
           </Link>
           <Link
-            className={clsx("button button--secondary button--lg", styles.heroCtaSecondary)}
+            className={clsx("button button--lg", styles.heroCtaSecondary)}
             to="/docs"
           >
             <Translate id="homepage.hero.cta.docs" description="Read docs CTA button">
@@ -67,7 +75,7 @@ function HomepageHero(): ReactNode {
             </Translate>
           </Link>
           <Link
-            className={clsx("button button--secondary button--lg", styles.heroCtaGithub)}
+            className={clsx("button button--lg", styles.heroCtaGithub)}
             href="https://github.com/MIRA-Intelligence/mira"
           >
             <GitHubIcon /> GitHub
