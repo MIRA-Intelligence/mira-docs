@@ -122,7 +122,7 @@ Electron 启动时会按这个顺序找 engine：
 2. `PATH` 上的 `mira-engine`；
 3. 安装包内置的 PyInstaller 二进制。
 
-`MiraUI-bundle` 首次启动时会自动执行：
+`MIRA-bundle` 首次启动时会自动执行：
 
 1. `mira-engine status`
 2. 如未安装则 `mira-engine install-service --port 18790`
@@ -131,7 +131,7 @@ Electron 启动时会按这个顺序找 engine：
 
 如果你已经手动 `mira-engine install-service` 把后台跑起来了，UI 会直接连 `localhost:18790`，不会重复安装。
 
-> `MiraUI-bundle` 只解决“本机使用 mira + mira-ui”这一条路径。若你希望把 agent 部署到远程服务器，仍需在远端机器单独安装 `mira`，然后让 UI 走远程连接模式。
+> `MIRA-bundle` 只解决“本机使用 mira + mira-ui”这一条路径。若你希望把 agent 部署到远程服务器，仍需在远端机器单独安装 `mira`，然后让 UI 走远程连接模式。对应地，`MIRA-standalone` 更适合远程连接或你已经手动管理本机引擎的场景。
 
 ## 验收检查
 

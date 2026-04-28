@@ -9,7 +9,9 @@ import TabItem from '@theme/TabItem';
 
 本节带你从“一台干净的电脑”到“在 UI 里看到第一个项目跑出结果”。全程约 10 分钟（不含模型调用本身的时间）。
 
-> 想走“本地优先”的最省事路径：直接安装 `MiraUI-bundle`，它会在首启时自动帮你注册并启动本机 `mira-engine`。如果你要把 agent 放到远程服务器，请仍然按下面步骤单独安装远端 `mira`，再让 UI 用远程连接模式接入。
+> 先记一个最重要的选择题：
+> - 想在**同一台电脑**上把 UI 和本地 `mira-engine` 一起装好，首启自动拉起本机引擎：选 `MIRA-bundle`
+> - 想连接**远程服务器上的 mira**，或你已经自己装好了本机 `mira` / `mira-engine`：选 `MIRA-standalone`
 
 ```mermaid
 flowchart LR
@@ -267,27 +269,42 @@ mira gateway
 
 挑一种安装方式。**普通用户走 A 即可**，B 留给前端开发者和想 hack UI 的人。
 
+先按你的使用场景选包：
+
+| 你现在的需求 | 应下载的桌面包 |
+| --- | --- |
+| 我只想在这台电脑上直接开始用，不想单独装 `mira-engine` | `MIRA-bundle` |
+| 我已经手动装好了 `mira` / `mira-engine`，只想装 UI | `MIRA-standalone` |
+| 我要连接远程服务器上的 `mira gateway` | `MIRA-standalone` |
+| 我需要 Linux 桌面包 | `MIRA-standalone`（当前 Linux 只提供 standalone） |
+
+> 一个简单判断法：**想连远程，就优先下 standalone；想本机一键开箱即用，就下 bundle。**
+
 <Tabs groupId="ui-install">
   <TabItem value="installer" label="A. 桌面安装包（推荐）" default>
 
-到 [GitHub Releases](https://github.com/{{PROJECT_ORG_NAME}}/mira-ui/releases/latest) 下载对应平台的安装包：
+到 [GitHub Releases](https://github.com/{{PROJECT_ORG_NAME}}/mira-ui/releases/latest) 下载对应平台的安装包。同一个 release 页面里会同时出现 `-standalone-` 和 `-bundle-` 两类资产：
 
-| 平台 | 安装包文件名 | 安装方式 |
+| 类型 | 适合谁 | 典型文件名 |
 | --- | --- | --- |
-| macOS (Apple Silicon) | `MiraUI-<ver>-mac-arm64.dmg` | 双击 → 拖到 Applications |
-| macOS (Intel) | `MiraUI-<ver>-mac-x64.dmg` | 同上 |
-| Windows (x86_64) | `MiraUI-<ver>-win-x64-setup.exe` | 双击运行 |
-| Linux (x86_64) | `MiraUI-<ver>-linux-x86_64.AppImage` | `chmod +x` 后双击或终端运行 |
+| `MIRA-bundle` | 本机使用、想省掉单独安装引擎 | `MIRA-bundle-<ver>-mac-arm64.dmg` / `MIRA-bundle-<ver>-win-x64-setup.exe` |
+| `MIRA-standalone` | 远程连接、或你自己管理 `mira-engine` | `MIRA-standalone-<ver>-mac-arm64.dmg` / `MIRA-standalone-<ver>-win-x64-setup.exe` / Linux `.AppImage` |
 
-> macOS 首次打开如果提示 “无法验证开发者”：右键 → 打开（或 `xattr -dr com.apple.quarantine /Applications/MiraUI.app`）。
+> macOS 首次打开如果提示 “无法验证开发者”：右键 → 打开（或 `xattr -dr com.apple.quarantine /Applications/MIRA.app`）。
 
 启动后：
 
-1. 默认尝试连接 `http://127.0.0.1:18790`。如果你按 4) 启动了 `mira gateway`，**通常无需任何配置就能看到项目列表**。
-2. 后端跑在远程机器上？打开 `Settings → Connection`，填写远程地址（例如 `https://mira.lab.example.com`）。
-3. 应用会自动检测同机器上的 `mira-engine`：
-   - 找到则 spawn 内置实例（`mira-engine` 在 PATH 上）。
-   - 找不到则只走远程后端模式。
+1. 如果你装的是 `MIRA-bundle`：
+   - 首启会自动检查、注册并启动本机 `mira-engine`
+   - 默认走本地模式，目标地址固定为 `127.0.0.1:18790`
+   - 最适合“这台电脑自己跑研究任务”的场景
+2. 如果你装的是 `MIRA-standalone`：
+   - 不会替你安装内置 engine
+   - 如果你本机已经按前文装好并启动了 `mira gateway`，通常无需额外配置
+   - 如果后端跑在远程机器上，打开 `Settings → General`，填写远程 API / WebSocket 地址（例如 `https://mira.lab.example.com/api` 与 `wss://mira.lab.example.com/ws`）
+3. 不确定自己该下哪个？又只想尽快开始：
+   - **单机本地使用**：下 `bundle`
+   - **远程 server / 团队共享后端**：下 `standalone`
 
 ![首屏占位图](/img/ui-navigation.png)
 
@@ -306,7 +323,9 @@ npm install
 # 选一个：
 npm run dev              # Web 模式，浏览器访问 http://localhost:5173
 npm run dev:electron     # Desktop 联调（Vite + Electron 一起起）
-npm run dist             # 出当前平台桌面安装包到 release/
+npm run dist             # 出 standalone 桌面安装包到 release/
+npm run dist:bundle:mac  # 出 macOS bundle 安装包
+npm run dist:bundle:win  # 出 Windows bundle 安装包
 ```
 
 后端地址通过 `.env.local` 自定义：

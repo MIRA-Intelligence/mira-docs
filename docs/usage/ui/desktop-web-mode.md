@@ -66,6 +66,15 @@ npm run build:web
 
 ## Desktop 模式
 
+Desktop release 现在分成两类：
+
+| 桌面包 | 适合谁 | 关键行为 |
+| --- | --- | --- |
+| `MIRA-standalone` | 远程连接用户、已经手动安装引擎的用户 | 只提供 UI，不内置本地 `mira-engine` 服务生命周期 |
+| `MIRA-bundle` | 单机本地使用、希望开箱即用的用户 | 内置对应平台的 `mira-engine` 二进制，首启自动注册并拉起本地服务 |
+
+> 如果你主要连远程 `mira gateway`，应优先下载 `standalone`；如果你希望“一台电脑装完就能本地跑”，应下载 `bundle`。
+
 ### 联调（同时拉起 Electron + Vite）
 
 ```bash
@@ -82,17 +91,19 @@ Electron 主进程会：
 
 ```bash
 npm run build:electron     # 只打包 renderer（不出安装包）
-npm run dist               # 出当前平台安装包到 release/
+npm run dist               # 出 standalone 安装包到 release/
+npm run dist:bundle:mac    # 出 macOS bundle 安装包
+npm run dist:bundle:win    # 出 Windows bundle 安装包
 npm run build:desktop      # 等价 build:web + build:electron
 ```
 
 产物位置：
 
-| 平台 | 文件 |
+| 类型 | 典型文件 |
 | --- | --- |
-| macOS | `release/MiraUI-<ver>-mac-<arch>.dmg` |
-| Windows | `release/MiraUI-<ver>-win-<arch>-setup.exe` |
-| Linux | `release/MiraUI-<ver>-linux-<arch>.AppImage` |
+| standalone | `release/MIRA-standalone-<ver>-mac-<arch>.dmg`、`release/MIRA-standalone-<ver>-win-<arch>-setup.exe` |
+| bundle | `release-bundle/MIRA-bundle-<ver>-mac-<arch>.dmg`、`release-bundle/MIRA-bundle-<ver>-win-<arch>-setup.exe` |
+| Linux | 当前只提供 standalone 桌面产物（`.AppImage`） |
 
 ### Electron 怎么找 `mira-engine`
 
@@ -100,7 +111,8 @@ npm run build:desktop      # 等价 build:web + build:electron
 
 1. 已设置 `MIRA_ENGINE_PATH` 环境变量 → 直接用它。
 2. 系统 `PATH` 上能找到 `mira-engine`（或 Windows 的 `mira-engine.exe`） → 用它。
-3. 落到打包内置的 PyInstaller 二进制 → 用它（适合无 Python 环境的最终用户）。
+3. 如果是 `MIRA-bundle`，再回落到安装包内置的 PyInstaller 二进制。
+4. 如果是 `MIRA-standalone` 且前几步都找不到，就只能连接远程后端，或等待你手动安装本机引擎。
 
 > 想强制 Electron 用你 `pip install -e .` 的开发版？`export MIRA_ENGINE_PATH=$(which mira-engine)` 后再 `npm run dev:electron`。
 

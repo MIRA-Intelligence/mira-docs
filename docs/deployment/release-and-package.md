@@ -25,11 +25,27 @@ flowchart LR
 | 制品 | 发布工作流 | 触发 |
 | --- | --- | --- |
 | UI 静态站 | （任意静态托管，一次 `npm run build:web`） | 手动 / CI |
-| UI 桌面安装包 | `mira-ui` 仓库 `desktop-release.yml` | 推 tag `v*` |
-| UI 本地整合包 (`MiraUI-bundle`) | `mira-ui` 仓库 `desktop-release-bundle.yml` | 推 tag `bundle-v*` 或手动 dispatch |
+| UI 桌面安装包（`standalone` + `bundle`） | `mira-ui` 仓库 `desktop-release.yml` | 推 tag `v*` |
+| UI bundle 手动重建 | `mira-ui` 仓库 `desktop-release-bundle.yml` | `workflow_dispatch` |
 | mira-engine PyPI | `mira` 仓库 `agent-release.yml` | 推 tag `v*` |
 | mira-engine 单文件二进制 | 同上，`agent-release.yml` 里 PyInstaller 步骤 | 推 tag `v*` |
 | 联合 release 校验 | `release-train.yml` (workflow_dispatch) | 手动指定 `agent_tag + ui_tag` |
+
+## 我该下载哪个桌面包
+
+GitHub Release 现在会在**同一个 release 条目**里同时放出 `MIRA-standalone` 和 `MIRA-bundle` 两类桌面资产。
+
+| 你要做什么 | 应选桌面包 |
+| --- | --- |
+| 连接远程服务器上的 `mira gateway` | `MIRA-standalone` |
+| 你已经自己装好了本机 `mira` / `mira-engine` | `MIRA-standalone` |
+| 想在同一台电脑上本地开箱即用 | `MIRA-bundle` |
+| 想把安装包交给不熟悉 Python / CLI 的同事 | `MIRA-bundle` |
+
+一句话判断：
+
+- `standalone` = 只有 UI，适合远程连接或你自己管理 engine
+- `bundle` = UI + 内置本地 engine，适合同机本地使用
 
 ## UI 构建命令
 
@@ -45,7 +61,7 @@ npm run build:electron
 # Web + Electron 一把
 npm run build:desktop
 
-# 出当前平台安装包（产物：release/）
+# 出当前平台 standalone 安装包（产物：release/）
 npm run dist
 
 # 出本地整合包（产物：release-bundle/）
@@ -53,22 +69,24 @@ npm run dist:bundle:mac
 npm run dist:bundle:win
 ```
 
-| 平台 | 安装包文件名（约定） |
-| --- | --- |
-| macOS | `MiraUI-<ver>-mac-<arch>.dmg` |
-| Windows | `MiraUI-<ver>-win-<arch>-setup.exe` |
-| Linux | `MiraUI-<ver>-linux-<arch>.AppImage` |
-
-本地整合包命名约定：
+standalone 命名约定：
 
 | 平台 | 安装包文件名（约定） |
 | --- | --- |
-| macOS | `MiraUI-bundle-<ver>-mac-<arch>.dmg` |
-| Windows | `MiraUI-bundle-<ver>-win-<arch>-setup.exe` |
+| macOS | `MIRA-standalone-<ver>-mac-<arch>.dmg` |
+| Windows | `MIRA-standalone-<ver>-win-<arch>-setup.exe` |
+| Linux | standalone `.AppImage`（当前 Linux 仅提供 standalone） |
 
-`MiraUI-bundle` 会把平台对应的 `mira-engine` 单文件二进制一起打包进 Electron 安装包，并在首启时自动注册/拉起本地 service。
+bundle 命名约定：
 
-> Electron 元数据在 `mira-ui/package.json`：`name = "mira-ui"`、`productName = "MiraUI"`、`appId = "com.projectmira.miraui"`。改了这些会影响安装包标识，请慎重。
+| 平台 | 安装包文件名（约定） |
+| --- | --- |
+| macOS | `MIRA-bundle-<ver>-mac-<arch>.dmg` |
+| Windows | `MIRA-bundle-<ver>-win-<arch>-setup.exe` |
+
+`MIRA-bundle` 会把平台对应的 `mira-engine` 单文件二进制一起打包进 Electron 安装包，并在首启时自动注册/拉起本地 service；`MIRA-standalone` 则不会代替你安装本地 engine。
+
+> Electron 元数据在 `mira-ui/package.json`：`name = "mira-ui"`、`productName = "MIRA"`、`appId = "com.projectmira.miraui"`。改了这些会影响安装包标识，请慎重。
 
 ## Engine 发布到 PyPI
 
