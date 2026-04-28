@@ -29,6 +29,34 @@ flowchart TB
 
 **症状**：右上角连接指示长时间灰/红；项目列表加载转圈。
 
+如果你连接的是**远程部署的 mira-agent / mira gateway**，先优先排这两件事：
+
+1. **先检查远程服务器和本地电脑的防火墙 / 安全组**
+   - 远程服务器是否允许 `18790`（或你自定义的端口）入站？
+   - 你本地电脑所在网络、公司 VPN、云服务器安全组、系统防火墙是否拦了这个端口？
+   - 最直接的测试方式是在本地电脑上执行：
+     ```bash
+     curl http://<remote-host>:18790/api/health
+     ```
+     如果这里都超时或拒绝连接，UI 一定也连不上。
+2. **局域网内访问远端机器时，后端必须监听 `0.0.0.0`，不能只绑 `127.0.0.1`**
+   - 如果远端日志里看到的是：
+     ```text
+     Starting mira gateway on 127.0.0.1:18790
+     ```
+     那就只允许服务器本机访问，局域网内其他机器看不到。
+   - 应改成：
+     ```bash
+     mira gateway --host 0.0.0.0 --port 18790
+     ```
+     或安装服务时：
+     ```bash
+     mira-engine install-service --host 0.0.0.0 --port 18790
+     ```
+   - 这样局域网内其他机器才能通过 `http://<server-ip>:18790` 连上。
+
+> 注意：`0.0.0.0` 适合局域网 / 内网可达场景；**不要**把未经鉴权的 `18790` 直接暴露到公网。
+
 排查顺序：
 
 1. 后端起了吗？
@@ -37,8 +65,9 @@ flowchart TB
    # 期望返回 {"status":"ok",...}
    ```
 2. 端口对吗？UI 的 `VITE_API_URL` / `VITE_WS_URL` 与 `mira gateway --port` 一致？
-3. 跨域被挡了吗？自托管反代时 nginx 的 `/ws` location 必须带 `Upgrade` / `Connection: upgrade`，详见 [自托管部署](../deployment/self-hosted.md)。
-4. 防火墙 / VPN 拦了 18790？`lsof -iTCP:18790 -sTCP:LISTEN` 验证后端在听；浏览器 DevTools → Network → WS 看握手响应码。
+3. 如果是远程 / 局域网访问，确认后端绑定的不是 `127.0.0.1`，而是 `0.0.0.0`。
+4. 跨域被挡了吗？自托管反代时 nginx 的 `/ws` location 必须带 `Upgrade` / `Connection: upgrade`，详见 [自托管部署](../deployment/self-hosted.md)。
+5. 防火墙 / VPN 拦了 18790？`lsof -iTCP:18790 -sTCP:LISTEN` 验证后端在听；浏览器 DevTools → Network → WS 看握手响应码。
 
 ## 2. 项目状态不一致（UI vs 文件）
 
