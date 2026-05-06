@@ -144,7 +144,7 @@ mira research --max-tokens 200000 --mode auto              # 加 token 预算
 | `--verbose / --no-verbose` | off | 显示工具调用 hint（含 skill 名） |
 | `--debug / --no-debug` | off | 等价 `--verbose` |
 
-> `--mode auto` 跑长任务时，建议同时配 `--max-tokens` 和 `--max-experiments` 当兜底。具体停止策略（goals / heuristics / `strictHeuristics` 等）见 automation policy 专题（待补）。
+> `--mode auto` 跑长任务时，建议同时配 `--max-tokens` 和 `--max-experiments` 当兜底。具体停止策略（goals / heuristics / `strictHeuristics` 等）见 [Auto 模式与 Automation Policy](./usage/agent-config/automation-policy.md)。
 
 ### `mira status`
 
