@@ -167,7 +167,7 @@ filterwarnings = [
 
 1. 加 `--logs --verbose` 重跑，看到底卡在哪个工具调用。
 2. 是 `web.search` 卡住？检查代理 / 公司网；或换 `provider: duckduckgo` 试试。
-3. 是 `exec` 卡住？很可能某条 shell 没 timeout。`tools.exec.timeout` 默认 60 秒，长任务可调到 600。
+3. 是 `exec` 卡住？先确认是不是某条 shell 在前台跑长任务被 timeout 卡死——`tools.exec.timeout` 默认 60s、上限 600s。**真长任务**（训练 / 大数据预处理 / 长仿真）应该让 agent 调 `exec(command="...", background=true)`，job 落到 `<workspace>/.mira/jobs/<job_id>/`，再用 `bg` 工具 `tail` / `wait` / `kill`，不会再阻塞 loop。详见 [后台长任务](../usage/agent-config/skills-and-tools.md#后台长任务execbackgroundtrue--bg-工具)。
 4. 是 LLM 调用卡住？看 provider 是否限流；切到候选模型。
 
 ## 10. 从 MedPilot 升级后没自动迁移
@@ -220,7 +220,36 @@ curl http://localhost:11434/api/tags    # 应返回模型列表
 
 详见 [本地服务（mira-engine）](../deployment/local-engine-service.md)。
 
-## 15. 还没解决？
+## 15. 项目里没有 `.venv`，agent 还在用全局 Python
+
+**症状**：开了「项目级 Python venv 隔离」这个特性，但 `~/.mira/workspace/PRJ-xxxx/` 下找不到 `.venv/`；agent 跑 `pip install` 装到了全局 site-packages。
+
+**根因**：这个特性默认是关的，`tools.exec.python.manager` 默认值是 `"off"`，需要显式改成 `"uv"`。
+
+```bash
+mira runtime info
+# Manager: off
+# Per-project venvs are disabled. Set tools.exec.python.manager = 'uv' to enable.
+```
+
+修法是在 `~/.mira/config.json` 里：
+
+```json
+{
+  "tools": { "exec": { "python": {
+    "manager": "uv",
+    "autoBootstrap": true,
+    "pythonVersion": "3.11"
+  }}}}
+```
+
+前置条件：本机 PATH 上要有 `uv >= 0.5.0`（`brew install uv` 或参考 [uv 安装文档](https://docs.astral.sh/uv/)）。`{{PROJECT_CORE_NAME}}` 桌面 bundle 自带 `uv`，源码安装需要自己装；没装而 `manager` 又设成 `"uv"`，第一次触发时会抛 `PythonEnvError: uv is required ... but was not found`。
+
+完整字段说明见 [项目级 Python venv 隔离](../usage/agent-config/skills-and-tools.md#项目级-python-venv-隔离toolsexecpython)。
+
+> `manager` 还有一个 `"system"` 选项是 schema 里**预留**的（passthrough：不建 venv，仅 pin 解释器），当前版本**尚未实现**，写了等同 `"off"`。
+
+## 16. 还没解决？
 
 1. 跑一次 `mira-engine doctor --export`，把 `~/.mira/runtime/diagnostics/<timestamp>.zip` 附上。
 2. 在 [GitHub Issues](https://github.com/{{PROJECT_ORG_NAME}}/mira/issues) 搜一下关键词；没人提过就开新 issue，附 `mira --version` + 操作步骤 + 上面那份 zip。

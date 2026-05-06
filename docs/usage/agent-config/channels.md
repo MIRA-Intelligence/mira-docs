@@ -14,6 +14,7 @@ sidebar_position: 5
 
 | Channel | key | 鉴权 | 群组策略 | 流式输出 |
 | --- | --- | --- | --- | --- |
+| 桌面/浏览器 UI | `ui` | 同源 + CORS 白名单 | — | ✅ |
 | Telegram | `telegram` | Bot Token | `open` / `mention` | ✅ |
 | WhatsApp | `whatsapp` | Bridge URL + Token | `open` / `mention` | — |
 | Discord | `discord` | Bot Token（OAuth 流） | — | — |
@@ -24,7 +25,6 @@ sidebar_position: 5
 | QQ | `qq` | App ID + Secret | — | — |
 | Matrix | `matrix` | homeserver + 账号或 token | `open` / `mention` / `allowlist` | — |
 | 邮件（IMAP+SMTP） | `email` | IMAP/SMTP 凭据 | — | — |
-| Web | `web` | 站点接入 | — | — |
 | WeCom（企微） | `wecom` | （插件化） | — | — |
 | 微信公众号 | `weixin` | （插件化） | — | — |
 
@@ -47,6 +47,61 @@ sidebar_position: 5
 | `sendToolHints` | 是否把工具调用提示（`read_file("...")`）推过去（默认关，避免打扰） |
 | `sendMaxRetries` | 投递失败重试次数（含首发） |
 | `transcriptionProvider` | 语音转写后端：`groq` 或 `openai` |
+
+## UI（桌面 / 浏览器，`channels.ui`）
+
+`{{PROJECT_UI_NAME}}` 桌面应用和浏览器版前端连的就是这个 channel——通过 WebSocket 推消息、REST 拉项目数据。**不开它 UI 就连不上后端**，所以装完 mira 第一件事就是确认这一节配好。
+
+```json
+{
+  "channels": {
+    "ui": {
+      "enabled": true,
+      "allowFrom": ["*"],
+      "corsOrigins": ["*"]
+    }
+  }
+}
+```
+
+| 字段 | 默认 | 说明 |
+| --- | --- | --- |
+| `enabled` | `false` | 总开关。`mira onboard` 默认会写成 `true`；自己改 config 时别忘了开 |
+| `allowFrom` | `[]` | 允许连接的客户端 ID / 来源白名单。`["*"]` 放行全部；空列表等同于"谁都不让连"，UI 会一直转圈 |
+| `corsOrigins` | `["*"]` | CORS `Access-Control-Allow-Origin` 列表。`["*"]` 放行全部 origin（适合本机自用）；要锁死的话填 `["https://your-host"]` |
+
+### Host / port 怎么定？
+
+UI channel 不绑自己的端口——它**复用 gateway 监听的 host:port**（默认 `0.0.0.0:18790`）。所以你看到的 UI 连接地址其实就是 gateway 地址：
+
+```bash
+mira gateway                              # 0.0.0.0:18790
+mira gateway --host 127.0.0.1 -p 28790    # 改 gateway，UI channel 跟着走
+```
+
+UI 连远程后端的话，`gateway` 必须监听 `0.0.0.0`（不能只 `127.0.0.1`），且对应端口的防火墙要开。详见 [troubleshooting §1](../../faq/troubleshooting.md#1-ui-无法连接后端)。
+
+### 推荐配置
+
+| 场景 | `allowFrom` | `corsOrigins` |
+| --- | --- | --- |
+| 个人本机 / 只跑桌面 app | `["*"]` | `["*"]` |
+| 团队远程共享一台 mira（受信内网） | `["*"]` | `["https://mira.team.lan"]` |
+| 公网暴露（不推荐，请优先走 Tailscale / VPN） | 具体 client ID 列表 | 具体 origin 列表 |
+
+> 远程共享场景请先把 `tools.restrictToWorkspace` 保持 `true`，并且把鉴权放在 gateway 前面（反向代理 / Tailscale ACL），UI channel 本身不做用户级身份校验。
+
+### 验收检查
+
+```bash
+# 后端起来
+mira gateway -v
+
+# 另开一个终端
+curl http://127.0.0.1:18790/api/health     # 应返回 200
+```
+
+UI 客户端里把后端地址填成 `http://<host>:18790`，连接指示灯转绿就 OK。
 
 ## Telegram（最简单）
 
