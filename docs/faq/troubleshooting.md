@@ -253,4 +253,4 @@ mira runtime info
 
 1. 跑一次 `mira-engine doctor --export`，把 `~/.mira/runtime/diagnostics/<timestamp>.zip` 附上。
 2. 在 [GitHub Issues](https://github.com/{{PROJECT_ORG_NAME}}/mira/issues) 搜一下关键词；没人提过就开新 issue，附 `mira --version` + 操作步骤 + 上面那份 zip。
-3. 紧急情况下回退到上一个稳定版本：`pip install "mira-engine==<上一稳定版本>"`，UI 同步降版本，参考 `compatibility.json`。
+3. 紧急情况下回退到上一个稳定版本：`pip install "mira-engine==<上一稳定版本>"`，UI 同步降版本——参考 [`mira-ui` 仓库根目录的 `compatibility.json`](https://github.com/{{PROJECT_ORG_NAME}}/mira-ui/blob/dev/compatibility.json)（`min_agent_for_ui` 给出最低 agent 版本，`agent` / `ui` 给出当前 release train 的配对）。
