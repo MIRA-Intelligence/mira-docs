@@ -137,31 +137,91 @@ mira --version    # 应显示 0.2.0
 
 ## 兼容性矩阵
 
-`mira` 仓库根目录的 `compatibility.json` 是 UI ↔ Agent 的“契约表”。
+UI ↔ Agent 的“契约表”由 **`{{PROJECT_UI_NAME}}` 仓库根目录**的 `compatibility.json` 维护。这个映射由 UI 侧持有，因为依赖方向是 `mira-ui → mira`（UI 调 agent），按惯例由消费者声明跟哪些上游版本兼容。
 
-| 字段 | 含义 |
-| --- | --- |
-| `release_train` | release 窗口 `YYYY.MM` |
-| `ui` | 兼容的 UI minor 范围（如 `0.1.x`） |
-| `agent` | 兼容的 agent minor 范围 |
-| `api_contract` | API contract 版本（如 `v1`） |
-| `min_agent_for_ui` | 兼容的最低 agent patch |
+`{{PROJECT_CORE_NAME}}` 仓库本身**不**参与这个映射，可以独立发版；它对兼容性握手的唯一贡献是 `GET /version` 暴露的 `api_contract` 字段（来源是 `mira_engine/channels/ui.py` 里的 `_API_CONTRACT_VERSION` 常量）。
 
-更新前用：
+### 字段含义
+
+| 字段 | 含义 | 何时改 |
+| --- | --- | --- |
+| `release_train` | release 窗口标识，如 `2026.04` 或 `2026.04rc2` | 每次开新 release window |
+| `ui` | 当前 UI tag（`0.3.0rc2`）或 minor range（`0.3.x`） | 打 mira-ui tag 前 |
+| `agent` | 当前 agent tag 或 minor range | agent 发新版后 |
+| `api_contract` | wire format 的大版本（`v\d+`） | 仅当 wire format 破坏性变更 |
+| `min_agent_for_ui` | UI 拒绝连的最低 agent patch | minor 跳变 / 协议要求升级时 |
+
+> `min_agent_for_ui` 是运行时真正会拦版本的那条线——`{{PROJECT_UI_NAME}}` 启动时打 `/version` 拿到 agent 版本后，会跟这个值比对，低于这条线直接判 `incompatible`，弹"引擎需要升级"提示。
+
+### 双层 CI guard（mira-ui 仓库）
+
+| Workflow | 触发 | 干什么 |
+| --- | --- | --- |
+| `compatibility-check.yml` | push 到 `main`/`dev`/`release` 或 PR，且 paths 命中 `compatibility.json` / 校验脚本 | 仅 schema 校验。约 30s。拦下格式错乱的编辑 |
+| `desktop-release.yml#verify-compatibility` | 每次触发本 workflow（包括 tag push） | schema **+** tag push 时额外跑 `--require-ui ${TAG#v}`，要求 `compatibility.json#ui` 跟 tag 一致或落在 minor 范围内 |
+
+`build-standalone` / `build-bundle` / `publish-release` 都 `needs: verify-compatibility`——**文件没改 / 改错就发不出来**。
+
+### 本地校验
 
 ```bash
-python scripts/validate_compatibility.py --file compatibility.json
+cd mira-ui
+
+# 仅 schema 校验
+node scripts/validate-compatibility.mjs --file compatibility.json
+
+# 打 tag 之前预演 tag 校验（接受精确 pin 和 minor range 两种写法）
+node scripts/validate-compatibility.mjs \
+  --file compatibility.json \
+  --require-ui 0.3.0rc3        # 替换成即将打的 UI tag
 ```
 
-`release-train.yml` 工作流可以接收 `agent_tag + ui_tag`，自动跑联合 smoke：
+### Release day 实操示例
+
+> 目前这套**还是手动**改 `compatibility.json`。L2 自动化（agent 打 tag → 自动给 mira-ui 开 chore PR）是 roadmap 下一步。
+
+从 `2026.04rc2` 升到 `2026.04rc3`，agent `0.2.0rc4 → 0.2.0rc5`，UI `0.3.0rc2 → 0.3.0rc3`：
 
 ```bash
+# 1) agent 先发，独立走自己的 pipeline
+cd mira
+git tag v0.2.0rc5 && git push origin v0.2.0rc5
+
+# 2) mira-ui 改 compatibility.json，开 PR
+cd ../mira-ui
+# 编辑 compatibility.json：
+#   release_train: 2026.04rc2 -> 2026.04rc3
+#   ui:            0.3.0rc2   -> 0.3.0rc3
+#   agent:         0.2.0rc4   -> 0.2.0rc5
+node scripts/validate-compatibility.mjs \
+  --file compatibility.json --require-ui 0.3.0rc3
+git checkout -b chore/bump-compat-rc3
+git add compatibility.json
+git commit -m "chore(compat): bump release train to 2026.04rc3"
+git push -u origin chore/bump-compat-rc3
+gh pr create --base dev --title "chore(compat): bump release train to 2026.04rc3"
+# compatibility-check.yml 自动跑 schema 校验 → 绿了 review 合并
+
+# 3) mira-ui 打 tag
+git checkout dev && git pull
+git tag v0.3.0rc3 && git push origin v0.3.0rc3
+# desktop-release.yml#verify-compatibility 拿 0.3.0rc3 跟文件比对
+# 通过则继续 build / publish；不一致直接拦下整条 pipeline
+
+# 4)（可选）跑联合 smoke 端到端验证
 gh workflow run release-train.yml \
-  -f agent_tag=v0.2.0 \
-  -f ui_tag=v0.2.1
+  -f agent_tag=v0.2.0rc5 \
+  -f ui_tag=v0.3.0rc3
 ```
 
-通过后再正式宣布该 release train。
+### Wire format 破坏性变更的特殊流程
+
+如果当次 release 改了 wire format（删字段 / 改 enum / 改 endpoint shape），需要协调两仓：
+
+1. **mira**：改 `mira_engine/channels/ui.py` 里的 `_API_CONTRACT_VERSION = "v1"` → `"v2"`，agent 打 tag，独立发版
+2. **mira-ui**：改 `engine.ts` 里检查的常量来源（`compatibility.json#api_contract` `"v1"` → `"v2"`），回测兼容旧 agent 不再连得上（这正是 `api_contract` 大版本要做到的事），打 tag
+
+旧 UI 连新 agent / 新 UI 连旧 agent，会被 `engine.ts` 的 `probeEngineCompatibility` 直接判 `incompatible`，弹"API 契约不兼容"。
 
 ## Docker 镜像
 
@@ -186,5 +246,5 @@ flowchart LR
 - [ ] CI 三平台测试全绿（Windows asyncio noise 已被 `pyproject.toml` 的 `filterwarnings` 抑制，不再造成误报）。
 - [ ] `pip install mira-engine==<ver>` 可装；`mira --version` 显示新版本。
 - [ ] 桌面安装包在 macOS/Windows/Linux 三种系统上至少抽查能启动。
-- [ ] `compatibility.json` 已更新且 `validate_compatibility.py` 通过。
+- [ ] `mira-ui/compatibility.json` 已更新到本次 release，`node scripts/validate-compatibility.mjs --file compatibility.json --require-ui <tag>` 在本地通过；mira-ui 仓库的 `verify-compatibility` job 在 tag push 上也是绿。
 - [ ] GitHub Release 页面有：wheel、sdist、3 平台 PyInstaller 二进制 + 对应 `.sha256`。
