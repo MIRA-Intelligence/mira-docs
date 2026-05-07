@@ -220,7 +220,23 @@ curl http://localhost:11434/api/tags    # 应返回模型列表
 
 详见 [本地服务（mira-engine）](../deployment/local-engine-service.md)。
 
-## 15. 项目里没有 `.venv`，agent 还在用全局 Python
+## 15. 改完 `config.json` 没生效
+
+**症状**：编辑了 `~/.mira/config.json`（换模型、加 key、改 channel），但行为没变。
+
+**根因**：gateway 进程**只在启动时读一次 config**，没有热重载。
+
+跨平台通用的让配置生效写法：
+
+```bash
+mira-engine stop && mira-engine start
+```
+
+macOS 上单跑 `mira-engine start` 也行（`launchctl kickstart -k` 自带 restart 语义），Linux/Windows 上 `start` 不会强制重启已运行的进程，必须先 `stop`。
+
+不要用 `uninstall-service` + `install-service` 来"应用配置"——那是给"换注册的 host/port"或"彻底退役"用的。完整的两层模型见 [本地服务（mira-engine）](../deployment/local-engine-service.md#两层心智模型)。
+
+## 16. 项目里没有 `.venv`，agent 还在用全局 Python
 
 **症状**：开了「项目级 Python venv 隔离」这个特性，但 `~/.mira/workspace/PRJ-xxxx/` 下找不到 `.venv/`；agent 跑 `pip install` 装到了全局 site-packages。
 
@@ -249,7 +265,7 @@ mira runtime info
 
 > `manager` 还有一个 `"system"` 选项是 schema 里**预留**的（passthrough：不建 venv，仅 pin 解释器），当前版本**尚未实现**，写了等同 `"off"`。
 
-## 16. 还没解决？
+## 17. 还没解决？
 
 1. 跑一次 `mira-engine doctor --export`，把 `~/.mira/runtime/diagnostics/<timestamp>.zip` 附上。
 2. 在 [GitHub Issues](https://github.com/{{PROJECT_ORG_NAME}}/mira/issues) 搜一下关键词；没人提过就开新 issue，附 `mira --version` + 操作步骤 + 上面那份 zip。
