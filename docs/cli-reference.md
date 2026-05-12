@@ -234,6 +234,8 @@ mira runtime project-gc --delete ~/.mira/workspace/PRJ-0019/.venv
 
 `mira-engine` 把 `mira gateway` 包装为可被系统管理（launchd / systemd / Windows Service）的后台服务，并提供升级 / 诊断 / 日志查看入口。**普通使用不需要它**；当你希望关掉终端 Mira 仍在跑，再考虑安装。
 
+如果你下载的是 GitHub Release 里的单文件 `mira-engine` 可执行文件，它只包含这一组服务管理命令，不包含完整 `mira` 用户 CLI；因此不能执行 `mira onboard`、`mira agent` 或前台 `mira gateway`。首次初始化请使用 PyPI / 源码安装得到 `mira` 命令，或搭配原生 `MIRA-UI`（推荐 `MIRA-bundle`）完成配置。
+
 ```
 $ mira-engine --help
 Commands:

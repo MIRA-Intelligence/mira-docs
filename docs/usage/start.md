@@ -15,13 +15,17 @@ import TabItem from '@theme/TabItem';
 
 ```mermaid
 flowchart LR
-    A[准备环境] --> B[安装 mira 引擎]
-    B --> C[mira onboard<br/>初始化 ~/.mira]
-    C --> D[配置 Provider<br/>API Key]
-    D --> E[mira gateway<br/>启动后端]
-    E --> F[启动 MiraUI]
-    F --> G[新建项目<br/>填写研究目标]
-    G --> H[运行实验]
+    A[准备环境] --> B{选择安装方式}
+    B --> C1[MIRA-bundle / 单文件 mira-engine<br/>配合原生 MIRA-UI 使用]
+    B --> C2[PyPI / 源码安装<br/>获得 mira CLI]
+    C1 --> D1[在 MIRA-UI 中配置本机/远程后端]
+    C2 --> D2[mira onboard<br/>初始化 ~/.mira]
+    D2 --> E[配置 Provider<br/>API Key / OAuth]
+    E --> S[mira gateway 或 mira-engine start]
+    D1 --> U[启动 MiraUI]
+    S --> U
+    U --> P[新建项目<br/>填写研究目标]
+    P --> H[运行实验]
     H --> I[Result 阶段<br/>导出交付物]
 ```
 
@@ -38,7 +42,7 @@ flowchart LR
 
 | 安装方式 | Python | Node.js | Git |
 | --- | --- | --- | --- |
-| **A. 单文件可执行**（推荐普通用户） | ❌ 不需要 | 仅在你想从源码跑 UI 时需要 | ❌ |
+| **A. 单文件可执行**（推荐搭配原生 MIRA-UI） | ❌ 不需要 | 仅在你想从源码跑 UI 时需要 | ❌ |
 | **B. PyPI 安装**（推荐熟悉 Python 的研究者） | 3.11 或 3.12 | 仅在你想从源码跑 UI 时需要 | ❌ |
 | **C. 源码安装**（开发者 / 想 hack） | 3.11 或 3.12 | 20+ | ✅ |
 
@@ -49,9 +53,13 @@ flowchart LR
 挑一个你最舒服的方式。**装一种就够了**，不要混装。
 
 <Tabs groupId="install-method">
-  <TabItem value="binary" label="A. 单文件可执行（推荐）" default>
+  <TabItem value="binary" label="A. 单文件可执行（配合 MIRA-UI）" default>
 
-无需 Python，下载即用，最适合非开发者。
+无需 Python，下载即用，适合非开发者，但它**必须搭配其他客户端使用**，推荐搭配原生 `MIRA-UI`（尤其是 `MIRA-bundle`）使用。
+
+> 重要：单文件 `mira-engine` 只提供本地引擎服务管理 CLI，用来注册、启动、停止、诊断 gateway 后台服务。它**不是**完整的 `mira` 用户 CLI，不包含 `mira onboard`、`mira agent`、`mira gateway` 等命令。
+>
+> 如果你需要在终端执行 `mira onboard` 初始化，或直接用 `mira agent ...` 对话，请改用 B. PyPI 安装或 C. 源码安装。
 
 到 [GitHub Releases](https://github.com/{{PROJECT_ORG_NAME}}/mira/releases/latest) 下载对应平台的可执行文件（每个文件都附带 `.sha256` 校验和）：
 
@@ -88,7 +96,18 @@ Invoke-WebRequest -Uri "https://github.com/{{PROJECT_ORG_NAME}}/mira/releases/la
 [Environment]::SetEnvironmentVariable("Path", $env:Path + ";$dst", "Machine")
 ```
 
-> 单文件版直接提供 `mira-engine` 服务管理 CLI（含 `gateway` 子流程），可以覆盖大多数日常使用。如果你需要直接用 `mira agent ...` 在终端跟 Agent 对话，请改用 B 或 C 方式安装。
+单文件版可用的日常命令是：
+
+```bash
+mira-engine doctor
+mira-engine install-service --host 127.0.0.1 --port 18790
+mira-engine start
+mira-engine status
+mira-engine logs
+mira-engine stop
+```
+
+这些命令只能管理本机 gateway 服务；首次配置 Provider / OAuth / workspace 时，请使用原生 `MIRA-UI` 的引导，或先通过 B / C 安装方式运行 `mira onboard --wizard`。
 
 校验：
 
@@ -153,23 +172,48 @@ mira --help
   </TabItem>
 </Tabs>
 
-## 2) `mira onboard` — 初始化本地
+## 2) 初始化本地
+
+这里按安装方式分两种情况：
+
+### A. 如果你安装的是单文件 `mira-engine`
+
+不要运行 `mira onboard`。单文件版没有这个命令。
+
+推荐做法：
+
+1. 安装原生桌面 `MIRA-UI`，优先选 `MIRA-bundle`。
+2. 让 UI 使用内置或 PATH 上的 `mira-engine` 拉起本机 gateway。
+3. 在 UI 的设置 / 引导流程里完成 Provider 与后端连接配置。
+
+如果你是高级用户，也可以手写 `~/.mira/config.json`，然后运行：
 
 ```bash
-mira onboard
+mira-engine install-service --host 127.0.0.1 --port 18790
+mira-engine start
+```
+
+### B / C. 如果你通过 PyPI 或源码安装
+
+这两种方式会安装完整的 `mira` CLI，才能运行：
+
+```bash
+mira onboard --wizard
 ```
 
 它会：
 
 1. 在 `~/.mira/` 下创建：`config.json`、`workspace/`、`logs/`、`runtime/`。
 2. 写入一份带占位字段的 `config.json` 模板。
-3. （加 `--wizard` 可以走交互式向导，逐项填 provider/model/key。）
+3. 通过交互式向导逐项配置 provider / model / key；如果选择 OAuth provider，会进入浏览器登录流程。
 
 如果你之前用过 MedPilot，第一次运行 `mira` 任何子命令时都会自动把 `~/.medpilot/` → `~/.mira/`，并把 `MEDPILOT_*` 环境变量映射到 `MIRA_*`，原文件保留 `.migrated-from-medpilot` 标记后不再触发。
 
 ## 3) 配置 Provider
 
-打开 `~/.mira/config.json`，至少把以下几项填齐。下面给三种最常见组合：
+普通 API key provider 可以直接编辑 `~/.mira/config.json`。OAuth provider 不能靠手写 key 完成，必须走 `mira onboard --wizard` 的登录流程（因此需要 PyPI / 源码安装，或后续由原生 UI 提供对应引导）。
+
+下面给四种最常见组合：
 
 <details>
 <summary><b>选项 A：OpenRouter（最简单，一把钥匙调全家）</b></summary>
@@ -218,7 +262,34 @@ mira onboard
 </details>
 
 <details>
-<summary><b>选项 C：本地 Ollama（无需 API key，需先装 Ollama 并 <code>ollama pull qwen2.5:14b</code>）</b></summary>
+<summary><b>选项 C：OAuth（OpenAI Codex / GitHub Copilot）</b></summary>
+
+OAuth provider 不在 `config.json` 里写 API key。请用完整 `mira` CLI 运行：
+
+```bash
+mira onboard --wizard
+# 选择 openai-codex 或 github-copilot，然后按提示在浏览器里完成登录
+```
+
+登录完成后，token 由专用 OAuth 状态目录托管。单文件 `mira-engine` 当前不能独立完成这一步。
+
+常见模型字段：
+
+```json
+{
+  "agents": {
+    "defaults": {
+      "provider": "openai_codex",
+      "model": "openai-codex/gpt-5.3-codex"
+    }
+  }
+}
+```
+
+</details>
+
+<details>
+<summary><b>选项 D：本地 Ollama（无需 API key，需先装 Ollama 并 <code>ollama pull qwen2.5:14b</code>）</b></summary>
 
 ```json
 {
@@ -244,9 +315,11 @@ mira onboard
 mira status
 ```
 
-应当看到 provider 已识别、model 已确认、workspace 路径正确。
+应当看到 provider 已识别、model 已确认、workspace 路径正确。只有 PyPI / 源码安装才有 `mira status`；单文件版请用 `mira-engine status` 与 `mira-engine doctor` 检查 gateway 服务。
 
 ## 4) 启动后端
+
+如果你用的是 PyPI / 源码安装，可以前台启动：
 
 ```bash
 mira gateway
@@ -257,7 +330,17 @@ mira gateway
 - WebSocket：`ws://localhost:18790/ws`
 - REST API： `http://localhost:18790/api`
 
-如果你想改端口：`mira gateway --port 28790`。常驻后台请看 [本地服务（mira-engine）](../deployment/local-engine-service.md)。
+如果你想改端口：`mira gateway --port 28790`。
+
+如果你用的是单文件 `mira-engine`，或希望常驻后台运行：
+
+```bash
+mira-engine install-service --host 127.0.0.1 --port 18790
+mira-engine start
+mira-engine status
+```
+
+更多服务管理细节见 [本地服务（mira-engine）](../deployment/local-engine-service.md)。
 
 > 想直接在终端里聊一下试试，不用 UI？另开一个终端：
 >

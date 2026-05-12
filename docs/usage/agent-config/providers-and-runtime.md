@@ -40,7 +40,7 @@ sidebar_position: 3
 | `openaiCodex` | OpenAI Codex（OAuth） | OAuth 登录 | `openai_codex/...` |
 | `githubCopilot` | GitHub Copilot（OAuth） | OAuth 登录 | `github_copilot/...` |
 
-> OAuth provider（`openaiCodex`、`githubCopilot`）需要在 `mira onboard --wizard` 中走登录流程，不能直接写 key。
+> OAuth provider（`openaiCodex`、`githubCopilot`）需要在完整 `mira` CLI 的 `mira onboard --wizard` 中走登录流程，不能直接写 key；单文件 `mira-engine` 当前不能独立完成 OAuth 登录。
 
 ## 最常见的几种配置
 
@@ -134,7 +134,7 @@ mira onboard --wizard
 # → 选 openai-codex 或 github-copilot → 浏览器登录
 ```
 
-不要在 config.json 里写 key——`openaiCodex` / `githubCopilot` 字段会被显式 `exclude=True` 忽略，token 由专用流程托管。
+不要在 config.json 里写 key——`openaiCodex` / `githubCopilot` 字段会被显式 `exclude=True` 忽略，token 由专用流程托管。只安装单文件 `mira-engine` 时，请改用原生 UI 引导或先安装完整 `mira` CLI 完成登录。
 
 ## `provider: "auto"` 的匹配规则
 

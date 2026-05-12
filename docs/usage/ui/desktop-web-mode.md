@@ -125,6 +125,6 @@ UI 的本地设置（API 地址、主题、最近项目等）存在浏览器 `lo
 ## 验收检查
 
 - [ ] Web 模式下首页可在 < 2s 加载完成，右上角连接指示绿。
-- [ ] Desktop 模式下首次启动若未配置 engine，UI 会弹出提示并指引 `mira onboard`。
+- [ ] Desktop 模式下首次启动若未配置 engine，UI 会提示安装 / 选择 `mira-engine`，或推荐改用内置引擎的 `MIRA-bundle`。
 - [ ] 打包产物在干净的目标系统上能直接启动并连上后端（或本地 spawn 的 engine）。
 - [ ] 切换 Web/Desktop 模式后，项目列表、设置等数据一致（前提是连同一个后端）。
