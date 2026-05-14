@@ -71,4 +71,8 @@ function main() {
   console.log("Rendered docs with variables to .generated-docs");
 }
 
-main();
+if (require.main === module) {
+  main();
+}
+
+module.exports = { loadVariables, replacePlaceholders, isTextDocFile, renderDir, DEFAULTS };

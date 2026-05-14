@@ -14,7 +14,8 @@
     "build": "docusaurus build",
     "serve": "docusaurus serve",
     "clear": "docusaurus clear",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "node --test scripts/render-doc-variables.test.js"
   },
   "keywords": [],
   "author": "",
