@@ -6,10 +6,12 @@ sidebar_position: 1
 
 ## 这一页解决什么
 
-- 第一次装完 `{{PROJECT_CORE_NAME}}`，`mira onboard` 到底做了哪些事？
+- 第一次通过 PyPI / 源码装完完整 `{{PROJECT_CORE_NAME}}` CLI 后，`mira onboard` 到底做了哪些事？
 - `~/.mira/` 里都有什么、各文件作用？
 - 怎么换 workspace 位置？多人 / 多机器怎么搬？
 - 从 `MedPilot` 升级时怎么自动迁移？
+
+> 如果你只下载了 GitHub Release 里的单文件 `mira-engine`，它不包含 `mira onboard`。单文件版只负责管理本机 gateway 服务，初始化请使用原生 MIRA-UI（推荐 MIRA-bundle）或改用 PyPI / 源码安装得到完整 `mira` CLI。
 
 ## `mira onboard` 实际做的事
 

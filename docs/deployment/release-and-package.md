@@ -124,7 +124,7 @@ git push origin v0.2.0
 | macOS (Intel) | `mira-engine-macos-x86_64` |
 | Linux (x86_64) | `mira-engine-linux-x86_64` |
 
-每个文件都附带同名的 `.sha256`。这是普通用户在 [快速开始 → 安装 A 选项](../usage/start.md#1-安装-mira-引擎) 中下载的产物。
+每个文件都附带同名的 `.sha256`。普通用户通过 [快速开始 → CLI + 桌面 UI · 安装 mira-engine](../usage/start.md#mira-engine-install) 场景下载这份产物（也是 `MIRA-bundle` 桌面安装包里随附的同一份二进制）。
 
 > Trusted publishing 不需要存任何 API token；只要 OIDC 配对正确就行。
 
