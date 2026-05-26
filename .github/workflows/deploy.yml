@@ -18,6 +18,12 @@ permissions:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+    env:
+      TENCENT_HOST: ${{ secrets.TENCENT_HOST }}
+      TENCENT_USER: ${{ secrets.TENCENT_USER }}
+      TENCENT_PORT: ${{ secrets.TENCENT_PORT }}
+      TENCENT_DEPLOY_PATH: ${{ secrets.TENCENT_DEPLOY_PATH }}
+      TENCENT_SSH_KEY: ${{ secrets.TENCENT_SSH_KEY }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -46,3 +52,27 @@ jobs:
           user_name: "mira-docs-bot"
           user_email: "mira-docs-bot@users.noreply.github.com"
           commit_message: "Deploy mira-docs @ ${{ github.sha }}"
+
+      - name: Publish to Tencent Cloud
+        if: ${{ env.TENCENT_HOST != '' && env.TENCENT_SSH_KEY != '' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          : "${TENCENT_USER:=ubuntu}"
+          : "${TENCENT_PORT:=22}"
+          : "${TENCENT_DEPLOY_PATH:=/opt/mira-docs/site}"
+
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          printf '%s\n' "$TENCENT_SSH_KEY" > ~/.ssh/tencent_mira_docs
+          chmod 600 ~/.ssh/tencent_mira_docs
+
+          ssh-keyscan -p "$TENCENT_PORT" -H "$TENCENT_HOST" >> ~/.ssh/known_hosts
+
+          rsync -az --delete \
+            -e "ssh -i ~/.ssh/tencent_mira_docs -p $TENCENT_PORT" \
+            build/ "$TENCENT_USER@$TENCENT_HOST:$TENCENT_DEPLOY_PATH/"
+
+          ssh -i ~/.ssh/tencent_mira_docs -p "$TENCENT_PORT" "$TENCENT_USER@$TENCENT_HOST" \
+            'if command -v docker >/dev/null 2>&1 && docker ps --format "{{.Names}}" | grep -qx mira-docs; then docker exec mira-docs nginx -s reload >/dev/null 2>&1 || true; fi'
