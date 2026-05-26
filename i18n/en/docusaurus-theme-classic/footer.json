@@ -11,6 +11,10 @@
     "message": "More",
     "description": "The title of the footer links column with title=更多 in the footer"
   },
+  "link.title.开发团队": {
+    "message": "Development Team",
+    "description": "The title of the footer links column with title=开发团队 in the footer"
+  },
   "link.item.label.首页": {
     "message": "Home",
     "description": "The label of footer link with label=首页 linking to /docs"

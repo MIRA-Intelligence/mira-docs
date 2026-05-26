@@ -90,3 +90,21 @@
   justify-content: center;
   margin: 1.2rem 0;
 }
+
+.footer-dev-team {
+  color: var(--ifm-footer-link-color);
+  font-size: 0.875rem;
+  line-height: 1.7;
+}
+
+.footer-dev-team__en {
+  display: none;
+}
+
+html[lang="en"] .footer-dev-team__zh {
+  display: none;
+}
+
+html[lang="en"] .footer-dev-team__en {
+  display: block;
+}

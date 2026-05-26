@@ -167,6 +167,29 @@ const config = {
               { label: "Issues", href: "https://github.com/MIRA-Intelligence/mira/issues" },
             ],
           },
+          {
+            title: "开发团队",
+            items: [
+              {
+                html: `
+                  <div class="footer-dev-team">
+                    <div class="footer-dev-team__zh">
+                      <div>联系人: Chenglong Wang (clwang[at]phy.ecnu.edu.cn)</div>
+                      <div>华东师范大学</div>
+                      <div>上海市磁共振重点实验室</div>
+                      <div>医学磁共振与分子影像技术研究院</div>
+                    </div>
+                    <div class="footer-dev-team__en">
+                      <div>Contact: Chenglong Wang (clwang[at]phy.ecnu.edu.cn)</div>
+                      <div>East China Normal University</div>
+                      <div>Shanghai Key Laboratory of Magnetic Resonance</div>
+                      <div>Institute of Medical Magnetic Resonance and Molecular Imaging Technology</div>
+                    </div>
+                  </div>
+                `,
+              },
+            ],
+          },
         ],
         copyright: `Copyright © ${new Date().getFullYear()} ${replaceDocVariables("{{PROJECT_ORG_NAME}}", docVariables)}. Built with Docusaurus.`,
       },
