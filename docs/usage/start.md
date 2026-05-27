@@ -105,25 +105,61 @@ import {
 
 ### 3. 在 UI 里配置 Provider
 
-按引导选 provider、填 API key。常见选择：
+按引导选 provider、填 API key、确认 **Base URL** 和 **Model name**。常见选择：
 
 - **OpenRouter**：一把 key 调遍主流模型，新人最稳。
 - **OpenAI / Anthropic**：直接用官方账号。
 - **OpenAI Codex / GitHub Copilot**：选 OAuth，会跳浏览器登录，登完即用。
-- **本地 Ollama**：填 `http://localhost:11434`，无需 API key。
+- **本地 Ollama**：填 `http://localhost:11434/v1`，无需 API key。
+
+> Base URL 留空时 UI 会用 provider 的官方默认值；如果你接的是企业代理、私有部署或非默认 Region，**必须**手动填一个能 `curl $apiBase/models` 通的地址。Model name 也要严格按官方命名（带 `-latest` / 日期 / 版本号），打错一个字符就会被服务端 404。
+
+<details>
+<summary><b>📋 各家 provider 的 Base URL + Model name 速查表（点击展开）</b></summary>
+
+下表给的是**目前各家官方 OpenAI 兼容端口**和**官网在售的代表 model 名**，仅供新手照抄；正式使用前请到对应官网二次确认（API 列偶尔会改、新模型每月都在出）：
+
+| Provider | Base URL（OpenAI 兼容端口） | Model name 示例 | 官方文档 |
+| --- | --- | --- | --- |
+| **OpenAI** | `https://api.openai.com/v1` | `gpt-4o` / `gpt-4.1` / `o3-mini` | [platform.openai.com/docs/models](https://platform.openai.com/docs/models) |
+| **Anthropic** | `https://api.anthropic.com` | `claude-opus-4-5` / `claude-sonnet-4-5` / `claude-3-7-sonnet-latest` | [docs.anthropic.com/en/docs/about-claude/models](https://docs.anthropic.com/en/docs/about-claude/models) |
+| **OpenRouter** | `https://openrouter.ai/api/v1` | `anthropic/claude-sonnet-4.5` / `openai/gpt-4o-mini` | [openrouter.ai/models](https://openrouter.ai/models) |
+| **Gemini** | `https://generativelanguage.googleapis.com/v1beta/openai/` | `gemini-2.5-pro` / `gemini-2.5-flash` | [ai.google.dev/gemini-api/docs/models](https://ai.google.dev/gemini-api/docs/models) |
+| **DeepSeek** | `https://api.deepseek.com/v1` | `deepseek-chat` / `deepseek-reasoner` | [api-docs.deepseek.com](https://api-docs.deepseek.com/) |
+| **阿里 DashScope（百炼）** | `https://dashscope.aliyuncs.com/compatible-mode/v1` | `qwen-max` / `qwen-plus` / `qwen3-max` | [help.aliyun.com/zh/model-studio](https://help.aliyun.com/zh/model-studio/getting-started/models) |
+| **智谱 Zhipu / GLM** | `https://open.bigmodel.cn/api/paas/v4` | `glm-4.5` / `glm-4.5-air` | [bigmodel.cn/dev/howuse/model](https://bigmodel.cn/dev/howuse/model) |
+| **Moonshot Kimi** | `https://api.moonshot.cn/v1`（中国）/ `https://api.moonshot.ai/v1`（国际） | `kimi-k2.5` / `moonshot-v1-32k` | [platform.moonshot.cn/docs/intro](https://platform.moonshot.cn/docs/intro) |
+| **字节 火山 / VolcEngine 方舟** | `https://ark.cn-beijing.volces.com/api/v3` | `doubao-seed-1-6-250615`（用你在控制台拿到的 **endpoint id**） | [volcengine.com/docs/82379](https://www.volcengine.com/docs/82379/1099455) |
+| **SiliconFlow 硅基流动** | `https://api.siliconflow.cn/v1` | `Qwen/Qwen3-Coder-480B-A35B-Instruct` / `deepseek-ai/DeepSeek-V3.2` | [docs.siliconflow.cn/cn/api-reference](https://docs.siliconflow.cn/cn/api-reference/chat-completions/chat-completions) |
+| **MiniMax** | `https://api.minimax.io/v1` | `MiniMax-M2` | [platform.minimaxi.com/document](https://platform.minimaxi.com/document/ChatCompletion) |
+| **Mistral** | `https://api.mistral.ai/v1` | `mistral-large-latest` / `ministral-8b-latest` | [docs.mistral.ai/getting-started/models](https://docs.mistral.ai/getting-started/models/models_overview/) |
+| **Groq** | `https://api.groq.com/openai/v1` | `llama-3.3-70b-versatile` | [console.groq.com/docs/models](https://console.groq.com/docs/models) |
+| **AiHubMix** | `https://aihubmix.com/v1` | 跟 OpenAI / Anthropic 同名，直接照抄即可 | [aihubmix.com/models](https://aihubmix.com/models) |
+| **Azure OpenAI** | `https://<your-resource>.openai.azure.com` | **填 deployment 名**（不是公开 model 名） | [learn.microsoft.com/azure/ai-services/openai](https://learn.microsoft.com/azure/ai-services/openai/concepts/models) |
+| **本地 Ollama** | `http://localhost:11434/v1` | `llama3.2` / `qwen2.5:14b` | [ollama.com/library](https://ollama.com/library) |
+| **本地 vLLM** | `http://localhost:8000/v1` | 跟启动 vLLM 时 `--model` 完全一致，如 `Qwen/Qwen2.5-7B-Instruct` | [docs.vllm.ai/en/latest/serving/openai_compatible_server](https://docs.vllm.ai/en/latest/serving/openai_compatible_server.html) |
+| **OpenAI Codex / GitHub Copilot** | 不填（OAuth） | `gpt-5-codex` / `gpt-5.1-codex`（Codex）；`gpt-5` / `claude-sonnet-4.5`（Copilot） | [对应官网控制台](https://copilot.github.com/) |
+
+这张表只列了主流的几家；完整 provider 清单（共 20+ 家）见 [Provider 与运行时参数](./agent-config/providers-and-runtime.md)。
+
+**Base URL 留空 vs 填值**：UI 输入框留空 = 用 provider 内置的默认值（就是上表里的地址）。如果你的网络环境需要走代理（如港澳/海外回中国 → 用国内加速节点），或者你想接私有部署，就**必须**手动填一个完整的 base URL。
+
+**Model name 一定要按官网命名**：例如 OpenAI 的 `o3-mini` 不能写成 `gpt-o3-mini`，Anthropic 必须带 `-latest` 或日期后缀（`claude-3-7-sonnet-latest`、`claude-sonnet-4-5-20251015`），VolcEngine 方舟必须用 **endpoint id**（形如 `ep-2025xxxxx`）而不是 model 名。填错时 UI 会显示一条来自上游的 400/404，从那条报错回头查官网即可。
+
+</details>
 
 UI 把结果写到 `~/.mira/config.json`，效果跟手写一样。详细字段参考下面的 [Provider 配置参考](#provider-config-ref)。
 
 ### 4. 新建第一个项目
 
-1. 点左侧 `+`，填：
+1. 顶栏先选好运行模式：研究类课题点 **科研**（`agent_profile = research`），工程类点 **工程**（`agent_profile = engineer`）。如果只是想做一次性问答 / 工具调用、不打算建项目，那就直接停在 **普通** —— 普通模式跳过 mira research 流水线，无须新建项目就能用。三档的区别详见 [运行模式与 Profile](./ui/run-mode-and-profile.md)。
+2. 点左侧 `+`，填：
    - `Research description`：详细写明你要研究的目标。
-   - `agent_profile`：研究类选 `research`，工程类选 `engineer`。
    - `contract_version`：默认 `compat` 即可，熟了再 `strict`。
    - `run_mode`：先选 `manual`（每一步看一眼）。
-2. **Research 阶段**：补背景、数据来源、参考文献。Agent 会用 `pubmed-search` / `deep-research` 自动找资料。
-3. **Experiment 阶段**：写明指标和方法。Agent 调对应 skill（如 `medical-image-dl-pipeline`），结果落到 `experiments/exp-001/`，回写 `task_plan.json` 的 `experiments[].results`。
-4. **Result 阶段**：选导出类型（`experiment_report` / `paper_article` / `presentation` / `metadata`），点导出。完成后 UI 显示 `output_path`，文件在 `result/exports/`。
+3. **Research 阶段**：补背景、数据来源、参考文献。Agent 会用 `pubmed-search` / `deep-research` 自动找资料。
+4. **Experiment 阶段**：写明指标和方法。Agent 调对应 skill（如 `medical-image-dl-pipeline`），结果落到 `experiments/exp-001/`，回写 `task_plan.json` 的 `experiments[].results`。
+5. **Result 阶段**：选导出类型（`experiment_report` / `paper_article` / `presentation` / `metadata`），点导出。完成后 UI 显示 `output_path`，文件在 `result/exports/`。
 
 <div style={{ textAlign: 'center' }}>
   <img src="/img/new_project.png" alt="新建项目" width="50%" />

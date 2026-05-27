@@ -39,6 +39,7 @@ const docVariables = loadDocVariables();
 const config = {
   title: replaceDocVariables("{{PROJECT_DOCS_NAME}}", docVariables),
   tagline: "Markdown-first docs for core + UI",
+  favicon: "img/favicon.png",
 
   // GitHub Pages Org 主页：https://mira-intelligence.github.io/
   // 源码仍在 mira-docs，构建产物由 CI 跨仓部署到 mira-intelligence.github.io 仓库的 main。

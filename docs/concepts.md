@@ -109,22 +109,26 @@ UI 上看到的任何状态、阶段、结果摘要，都可以在 `PRJ-xxxx/tas
 }
 ```
 
-## 5. Phase / Run Mode / Agent Profile / Contract Version
+## 5. App Mode / Phase / Run Mode / Agent Profile / Contract Version
 
-四个互相正交的“运行旋钮”，决定 Agent 一回合接一回合的行为：
+五个互相正交的“运行旋钮”，决定 Agent 一回合接一回合的行为。UI 顶部那个“普通｜工程｜科研”三段按钮其实是把 `app_mode` 和 `agent_profile` 折叠在一起的快捷开关：
 
 | 旋钮 | 取值 | 直觉 |
 | --- | --- | --- |
-| **phase** | `research` / `experiment` / `result` | 当前在生命周期哪一段。决定 Agent 优先调度的 skill 集。 |
-| **run_mode** | `manual` / `auto` | `manual` 每一步停下来等你确认；`auto` 自动连跑直到自然终止或 guardrail 拦截。 |
-| **agent_profile** | `default` / `engineer` / `research` | 系统提示词 + 默认工具偏好。`research` 更挑剔证据链，`engineer` 偏代码。 |
-| **contract_version** | `v1` / `v2` / `strict` | 输出结构约束等级；`strict` 缺字段就会被 guardrail 拦下。 |
+| **app_mode** | `normal` / `project` | `normal`（UI：**普通**）走 `BaseAgentLoop`，**跳过** mira research 流水线，接近 native agent 体验；`project`（UI：**工程** / **科研**）走 `ResearchAgentLoop`，启用 task_plan、experiments、guardrail。 |
+| **phase** | `research` / `experiment` / `result` | 仅在 `project` 模式有意义。当前在生命周期哪一段。决定 Agent 优先调度的 skill 集。 |
+| **run_mode** | `manual` / `auto` | 仅在 `project` 模式有意义。`manual` 每一步停下来等你确认；`auto` 自动连跑直到自然终止或 guardrail 拦截。 |
+| **agent_profile** | `engineer` / `research` | 仅在 `project` 模式有意义。系统提示词 + 默认工具偏好——`research` 更挑剔证据链，`engineer` 偏代码；UI 上对应“工程”和“科研”两挡。 |
+| **contract_version** | `v1` / `v2` / `strict` | 仅在 `project` 模式有意义。输出结构约束等级；`strict` 缺字段就会被 guardrail 拦下。 |
+
+> CLI 的 `mira research --profile` 仍兼容 `default` 这个旧值；UI 不再暴露它，新建项目时只在 `engineer` / `research` 二选一。
 
 经验组合：
 
-- **探索期**：`manual` + `research` + `strict`，慢但稳。
-- **稳定迭代**：`auto` + `engineer` + `v1`，快。
-- **科研交付**：`auto` + `research` + `strict`，吞吐 + 完整证据。
+- **一次性问答 / 工具型任务**：`app_mode = normal`，跳过所有流水线。
+- **工程探索期**：`project` + `manual` + `engineer` + `v1`，慢但稳。
+- **工程稳定迭代**：`project` + `auto` + `engineer` + `v1`，快。
+- **科研交付**：`project` + `auto` + `research` + `strict`，吞吐 + 完整证据。
 
 ## 6. Guardrail（结构守卫）
 

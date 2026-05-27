@@ -21,8 +21,10 @@ UI 最左侧那一栏。
 ## 它做什么
 
 - 浏览和切换全部项目（默认按最近活动时间倒序）。
-- 新建项目时设置 `run_mode` / `agent_profile` / `contract_version`。
+- 新建项目时设置运行模式（**工程** / **科研**）、`run_mode`、`contract_version`。
 - 项目级动作：**重命名 / 复制 / 删除**。
+
+> 顶部那条“普通”选项不在这里——点它会直接切到不带项目的 native agent 对话，**不**会出现在项目队列里。参考 [运行模式与 Profile](./run-mode-and-profile.md)。
 <!-- - 一眼看到 `pending` / `running` / `completed` / `failed` 状态，不用点进去。 -->
 
 ## 典型操作
@@ -33,8 +35,8 @@ UI 最左侧那一栏。
 2. 必填：
    - `Research Description`：详细的描述本项目
 3. 推荐：
+   - 运行模式：科研类课题选 **科研**（`agent_profile = research`，偏证据/对照/文献）；偏工程改造选 **工程**（`agent_profile = engineer`，偏代码/复用/测试）。
    - `run_mode = manual`（首次都建议 manual，看一眼再放手）。
-   - `agent_profile = default`（默认的风格，兼顾科研和工程性能）。
    - `contract_version = compact`（熟悉后再升 strict）。
 4. 点击创建后，UI 会跳转到该项目的 Research 阶段。
 
