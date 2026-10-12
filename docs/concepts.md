@@ -1,186 +1,75 @@
 ---
-title: 核心概念
 sidebar_position: 2
 ---
 
 # 核心概念
 
-读完本页，你应该能在脑里画出 `{{PROJECT_CORE_NAME}}` 的运行模型，并理解 UI / 日志中频繁出现的术语。所有概念都是“工程上必须存在的实体”，不是营销词。
+当前 MIRA 把项目组织为多次独立的 **模块运行**，用明确选择的产物连接不同工作。读完本页即可区分项目、运行、实验和文件。
 
-## 一句话总结
+## Workspace 与项目
 
-> `{{PROJECT_CORE_NAME}}` = **一个跑在你本地的 Agent Runtime + 一组医学研究 Skills + 一个把所有产物都落到磁盘的工作区（workspace）**。
->
-> `{{PROJECT_UI_NAME}}` = **可视化 + 操作面板**，它本身不存数据，所有真相都在 `~/.mira/` 里。
+- **Workspace**：引擎配置的工作区，用于会话、组织信息、技能和相关文件。
+- **Project**：具有明确目录与 `.mira/project.json` 元信息的研究或工程项目。项目目录可以由创建窗口指定，受部署策略限制。
+- **Quick Chat**：不要求项目流水线的通用对话，可在需要时转成项目并保存上下文附件。
 
-## 实体关系
+本地默认数据目录为 `~/.mira`；远程模式的数据位于 gateway 主机。所有路径都应以实际运行配置和项目目录为准。
+
+## ModuleRun、Attempt 与 Experiment
+
+| 概念 | 含义 | 例子 |
+| --- | --- | --- |
+| ModuleRun | 一次独立模块任务，拥有状态、输入、输出、对话和检查点 | “调研 1”“实验 2”“交付 1” |
+| Attempt | 该 Run 的一次执行尝试；回答表单、恢复或重试可进入新 Attempt | 从确认表单后的检查点继续 |
+| Experiment | 实验模块中登记的具体实验记录 | 固定划分下的基线与方法对照 |
+| Artifact | 引擎发布的产物，包含类型、来源、哈希和内容引用 | CSV、报告、图片或结构化方案 |
+| Candidate | 界面中可选择的方向、实验记录或交付物 | 选择 EXP-001 用于报告 |
+
+一个 Run 可以包含多个实验和文件。Attempt 数量不是实验数量；文件数量也不是候选实验数量。
+
+## 模块与分支
+
+总览展示 **调研、实验、结果交付** 三栏，任何一栏都可以直接启动。引擎还支持 `planning` 规划类型。
 
 ```mermaid
-flowchart TB
-    Workspace["workspace/<br/>(~/.mira/workspace)"]
-    Workspace --> P1["PRJ-0001/<br/>项目 A"]
-    Workspace --> P2["PRJ-0002/<br/>项目 B"]
-    Workspace --> Pn["PRJ-xxxx/..."]
-
-    P1 --> TP["task_plan.json<br/>(项目状态 + 实验列表)"]
-    P1 --> Data["data/<br/>(原始/处理后数据)"]
-    P1 --> Exp["experiments/<br/>(每次跑的脚本+输出)"]
-    P1 --> Result["result/<br/>(最终交付物)"]
-
-    TP --> Phase["phase: research / experiment / result"]
-    TP --> Status["status: pending/running/completed/failed"]
-    TP --> Curr["current_experiment"]
-    TP --> Res["result.output_path / output_type"]
-
-    Result --> Exports["exports/<br/>experiment_report / paper_article<br/>presentation / metadata"]
+flowchart LR
+    R[调研 Run] --> A[方向 A]
+    R --> B[方向 B]
+    A --> E1[实验 Run 1]
+    B --> E2[实验 Run 2]
+    E1 --> X[实验 EXP-001]
+    E1 --> Y[实验 EXP-002]
+    X --> D[交付 Run 1]
+    Direct[已有方案或稿件] --> E2
+    Direct --> D
 ```
 
-## 1. Workspace（工作区）
+改选上游候选后继续，会创建新的下游运行，保留已有分支。新 Run 带入显式所选的产物、记录或摘要，不自动继承其他 Run 的完整对话。
 
-**位置**：默认 `~/.mira/workspace`，可由 `agents.defaults.workspace` 覆盖。
+## 确认与执行模式
 
-- 这是 Agent **唯一允许写入** 的目录。所有读写工具（`write_file`、`exec`、`apply_patch` 等）都被沙箱守卫强制限定在它之内。
-- Agent 仍可 **只读** 访问框架内置的 skills（`mira_engine/skills/...`），但不能写。
-- 工作区内每个一级子目录通常对应一个项目（`PRJ-0001/` …）。
+- **执行前确认**：本次范围的批准或修改，调研、实验和交付各自都有。
+- **实验执行模式**：本次实验 Run 的 `auto` / `manual`，在启动窗口选择；manual 每个实验结束后等待决定。
+- **衔接策略**：模块完成后由你选择下一步，或按规则自动创建建议的下游 Run。
+- **Profile**：工程、科研、团队的执行策略，与以上控制独立。
 
-> 想换位置？修改 `~/.mira/config.json` 的 `agents.defaults.workspace`，再 `mira status` 验证生效即可。CLI 调用还可临时用 `--workspace /path/to/other/ws` 覆盖。
+参见 [确认与继续](./usage/ui/interactions.md)、[实验输入](./usage/ui/experiment-inputs.md) 和 [运行模式](./usage/ui/run-mode-and-profile.md)。
 
-## 2. Project（项目）
+## 状态与证据
 
-**载体**：`workspace/PRJ-xxxx/` 目录。
+新模块的状态在 `<project>/.mira/modules/<run-id>/module.json`；事件在 `.mira/events.jsonl`。`waiting_input` 代表应回答当前表单；`completed` 代表模块结束并发布相应结果，仍需要审查文件与结论。
 
-一个项目对应一个研究主题，包含：
+旧项目仍可能以 `task_plan.json` 为阶段和实验状态来源；不要将两种合同混用。详见 [状态与存储](./usage/ui/task-plan-and-status.md)。
 
-| 子项 | 路径 | 含义 |
-| --- | --- | --- |
-| `task_plan.json` | 项目根 | 项目级状态机；UI 显示的几乎所有信息都来自它。 |
-| `data/` | 项目根 | 原始数据 + 预处理产物。 |
-| `experiments/` | 项目根 | 每个实验的脚本、配置、日志、模型权重。 |
-| `result/exports/` | 项目根 | Result 阶段导出的报告 / 论文 / PPT / metadata 包。 |
+## 输入范围
 
-**生命周期**：`pending` → `running` → `completed` 或 `failed`。
-**完成判定**：项目级 `completed` ≠ 实验都跑完，必须 `result.output_path` 存在且 `output_type` 合法。
+实验启动窗口可授权本次 Run 及其子智能体读取额外文件/目录。路径是 gateway 主机的绝对路径，授权只读，不开放外部写入，也不授权其他 Run。它是工具层的范围检查，不等于 OS 沙箱。
 
-## 3. Experiment（实验）
+## Provider、模型与 Skill
 
-`task_plan.json` 中的 `experiments[]` 数组里每一项都是一个实验单元。每个实验有：
+- **Provider**：供应商或本地服务的接入方式。
+- **Model**：实际模型名，以供应商或服务返回的可用列表为准。
+- **候选模型**：为默认或团队角色模型提供有序回退列表，需配置对应 Provider。
+- **Skill**：任务的步骤、模板和要求；显式选中的 Skill 会作为当前消息指令。
+- **Tool**：读写文件、执行 shell、搜索或调用 MCP 的具体能力。
 
-- `status`：`pending` / `running` / `completed` / `failed`
-- `results.metrics`：指标表（如 AUC、Dice、HR、p 值）
-- `results.findings`：文字结论
-- `results.artifacts`：产出文件路径列表（图、CSV、模型）
-- 严格模式（research strict）下还要求：
-  - `theoretical_proof` — 理论或方法依据
-  - `isolation_test` — 隔离对照
-  - `post_mortem` — 失败/异常复盘
-  - `evidence_refs` — 证据引用
-
-不齐全的字段会被 [guardrail](./usage/ui/guardrail-and-auto-repair.md) 捕获并触发自动修复回合。
-
-## 4. Task Plan（task_plan.json）
-
-UI 上看到的任何状态、阶段、结果摘要，都可以在 `PRJ-xxxx/task_plan.json` 里找到原文。**真相在文件里，UI 是它的视图。**
-
-关键字段：
-
-```jsonc
-{
-  "id": "PRJ-0001",
-  "title": "Dixon-MRI 呼气/吸气分类",
-  "phase": "experiment",            // research / experiment / result
-  "status": "running",
-  "current_experiment": "exp-003",
-  "experiments": [
-    {
-      "id": "exp-001",
-      "status": "completed",
-      "results": {
-        "metrics": { "auc": 0.91 },
-        "findings": "3D ResNet 优于 2D",
-        "artifacts": ["experiments/exp-001/best_model.pt"]
-      }
-    }
-  ],
-  "result": {
-    "output_path": "result/exports/experiment_report.md",
-    "output_type": "experiment_report",
-    "summary": "..."
-  }
-}
-```
-
-## 5. App Mode / Phase / Run Mode / Agent Profile / Contract Version
-
-五个互相正交的“运行旋钮”，决定 Agent 一回合接一回合的行为。UI 顶部那个“普通｜工程｜科研”三段按钮其实是把 `app_mode` 和 `agent_profile` 折叠在一起的快捷开关：
-
-| 旋钮 | 取值 | 直觉 |
-| --- | --- | --- |
-| **app_mode** | `normal` / `project` | `normal`（UI：**普通**）走 `BaseAgentLoop`，**跳过** mira research 流水线，接近 native agent 体验；`project`（UI：**工程** / **科研**）走 `ResearchAgentLoop`，启用 task_plan、experiments、guardrail。 |
-| **phase** | `research` / `experiment` / `result` | 仅在 `project` 模式有意义。当前在生命周期哪一段。决定 Agent 优先调度的 skill 集。 |
-| **run_mode** | `manual` / `auto` | 仅在 `project` 模式有意义。`manual` 每一步停下来等你确认；`auto` 自动连跑直到自然终止或 guardrail 拦截。 |
-| **agent_profile** | `engineer` / `research` | 仅在 `project` 模式有意义。系统提示词 + 默认工具偏好——`research` 更挑剔证据链，`engineer` 偏代码；UI 上对应“工程”和“科研”两挡。 |
-| **contract_version** | `v1` / `v2` / `strict` | 仅在 `project` 模式有意义。输出结构约束等级；`strict` 缺字段就会被 guardrail 拦下。 |
-
-> CLI 的 `mira research --profile` 仍兼容 `default` 这个旧值；UI 不再暴露它，新建项目时只在 `engineer` / `research` 二选一。
-
-经验组合：
-
-- **一次性问答 / 工具型任务**：`app_mode = normal`，跳过所有流水线。
-- **工程探索期**：`project` + `manual` + `engineer` + `v1`，慢但稳。
-- **工程稳定迭代**：`project` + `auto` + `engineer` + `v1`，快。
-- **科研交付**：`project` + `auto` + `research` + `strict`，吞吐 + 完整证据。
-
-## 6. Guardrail（结构守卫）
-
-每次实验/导出落地后，Agent 会按 `contract_version` 把字段校验一遍。任何缺失/占位文本/无效证据都会触发一次专用的 **修复回合**，Agent 会自己回头补齐字段，而不是让你手工改 JSON。
-
-UI 上看到“暂停推进新实验、出现缺失字段提示”，通常就是 guardrail 在工作。详见 [Guardrail 与自动修复](./usage/ui/guardrail-and-auto-repair.md)。
-
-## 7. Session（会话）
-
-CLI / UI / 任意 channel 调用 Agent 时都隐式带一个 `session` ID（默认 `cli:direct`）。同一 session 内的对话共享上下文与记忆。
-跨设备共享单一会话可在 `agents.defaults.unifiedSession` 打开（适合“一个人多端”的场景）。
-
-## 8. Provider / Model / Routing
-
-- **Provider**：模型供应商（OpenAI、Anthropic、OpenRouter、DeepSeek、Ollama……）。`{{PROJECT_CORE_NAME}}` 内置 [20+ provider](./usage/agent-config/providers-and-runtime.md)。
-- **Model**：具体型号（如 `anthropic/claude-opus-4-5`）。
-- **Routing**：开启 `routeByComplexity` 后，`{{PROJECT_CORE_NAME}}` 会按任务复杂度路由到 `smallModel` / `mediumModel` / `largeModel`，便宜的活走便宜的模型。详见 [模型路由](./usage/agent-config/model-router.md)。
-
-## 9. Skills（技能）
-
-技能 = **一段写好的“做某件事”的标准操作流程 + 模板代码**。Agent 调用 skill 而不是直接写代码，可以保证可复现、可审计。内置技能分类（节选）：
-
-| 分类 | 代表 skill |
-| --- | --- |
-| `medical-imaging/` | `medical-image-dl-pipeline`、`radiomics`、`pyradiomics`、`monai`、`pydicom`、`dicom2nifti` |
-| `ml-statistics/` | `survival-analysis`、`statistical-analysis`、`scikit-learn`、`scikit-survival` |
-| `research/` | `deep-research`、`pubmed-search`、`peer-review`、`scientific-method` |
-| `visualization/` | `matplotlib`、`seaborn`、`scientific-slides`、`scientific-schematics` |
-| `engineering/` | 通用代码任务 |
-| `documents/` | 文档处理 |
-| `cron/` | 周期任务 |
-| `summarize/` | 摘要 |
-| `skill-creator/` | 你可以用它做新 skill |
-
-完整列表见 [Skills 与 Tools](./usage/agent-config/skills-and-tools.md)。
-
-## 10. Tools（工具）
-
-Skill 是“怎么做”，Tool 是“能做”。`{{PROJECT_CORE_NAME}}` 提供：
-
-- `filesystem`：受沙箱保护的读/写/列文件。
-- `shell`（`exec`）：受 `tools.exec` 配置约束的子进程执行（带 timeout、PATH 注入、可选 bwrap 沙箱）。
-- `web`：DuckDuckGo / Brave / Tavily / SearXNG / Jina 等搜索 + 抓取。
-- `mcp`：任意符合 Model Context Protocol 的外部 server，可在 `tools.mcpServers` 里挂载。
-
-详见 [Skills 与 Tools](./usage/agent-config/skills-and-tools.md)。
-
----
-
-## 你应该立即记住的几件事
-
-1. **真相在磁盘**：UI 状态对不上时先打开 `task_plan.json`。
-2. **沙箱很严**：Agent 写不了 workspace 之外的目录；如果要换位置，改 `agents.defaults.workspace`，别 hack 路径。
-3. **`mira-engine` 是后台服务管理 CLI**，不是 Python 包名以外的东西；普通使用基本只用 `mira`。
-4. **从 MedPilot 升级**：第一次启动会自动迁移，无须手工 `mv`。
+配置见 [Agent 配置](./usage/agent-config/README.md)。长期记忆与会话压缩见 [记忆与 Python SDK](./usage/agent-config/memory-and-sdk.md)。

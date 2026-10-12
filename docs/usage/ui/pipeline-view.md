@@ -2,64 +2,61 @@
 sidebar_position: 2
 ---
 
-# 阶段流水线视图（Research / Experiment / Result）
+# 模块与流水线总览
 
-## 它在哪 / 长什么样
+当前项目总览展示 **调研 → 实验 → 结果交付** 三栏。每栏列出可选择的候选结果；同一个项目可包含多次独立运行和多条下游分支。
 
-进入项目后，**顶部的三段式阶段指示条**就是流水线视图。每段对应 `task_plan.json.phase` 的一个值。
+![模块总览及选中的分支](/img/current/workflow-overview.png)
 
-```mermaid
-stateDiagram-v2
-    [*] --> Research
-    Research --> Experiment: 研究问题/参考资料齐了
-    Experiment --> Result: 实验都跑完且通过 guardrail
-    Result --> [*]: result.output_path 有效
-    Experiment --> Experiment: 多个实验
-    Experiment --> Research: 发现需要补充背景
-    Result --> Experiment: 导出失败/需补实验
-```
+*当前组件截图，数据为演示。调研列选择方向 A 后，实验列显示该方向的实验；交付列显示所选实验对应的交付分支。*
 
-**TODO 截图**：顶部三段指示条（当前阶段高亮）、阶段切换按钮、每段下方的概要卡片。
+## 可从任意模块开始
 
-## 三阶段各自做什么
+| 模块 | 启动时填写 | 常见产出 |
+| --- | --- | --- |
+| 立项与调研 | 本次目标、是否启用外部文献调研、来源与已有参考材料 | 文献卡片、证据综述、候选方向 |
+| 实验 | 已有方案、数据/代码位置、执行模式、停止条件与预算 | 独立实验记录、指标、文件、失败分析 |
+| 结果交付 | 写作或整理目标、交付形式、已有材料 | 报告、论文、演示或归档包 |
 
-| 阶段 | Agent 主要做的事 | 你应该看的字段 | 结束标志 |
-| --- | --- | --- | --- |
-| **Research** | 文献检索、问题/假设/方法论梳理 | `research.background` / `research.hypothesis` / `research.references` | 你点 “进入 Experiment” |
-| **Experiment** | 跑实验、回写 metrics & artifacts | `experiments[].status` / `results.metrics` / `results.artifacts` | 全部 `completed` 且无 guardrail 待修 |
-| **Result** | 触发导出、生成报告/论文/PPT | `result.output_path` / `result.output_type` / `result.summary` | `output_path` 文件存在并合法 |
+已经有方案和数据，可以直接启动实验；已有结果或稿件，可以直接启动交付。引擎还支持 `planning`（规划）类型，当前主总览不把它作为必须经过的第四栏。
 
-## 怎么用
+## 启动调研
 
-### 1) Research
+点击调研栏的 **启动阶段 / + 新候选**，填写目标，例如：
 
-- 在面板里把 `objective` 细化成d多个 **可被实验验证** 的子问题。
-- 让 Agent 调 `pubmed-search` / `deep-research` / `multi-search-engine` 拉一轮文献。
-- 必要时自己加入 “参考资料” 链接（PDF/URL/笔记），Agent 会在后续阶段引用它们。
+> 比较近三年的定量 MRI 方法，梳理参考标准、验证设计与局限，提出两个适合现有数据的最小验证方向。
 
-### 2) Experiment
+![调研启动：目标、文献来源与参考材料](/img/current/research-launch.png)
 
-- 每条实验对应 `experiments[]` 的一个元素。新建实验时 Agent 会用 `medical-image-dl-pipeline` / `radiomics` / `survival-analysis` 等 skill 落地。
-- 阶段流水线条上的小圆点显示每条实验的 `status`，鼠标悬浮可看摘要。
-- 遇到 `failed` 实验，**不要急着删**，进 [实验详情面板](./experiment-detail.md) 看 `post_mortem` 与日志，多数能就地修复。
+*实际启动窗口的局部截图，使用演示目标。*
 
-### 3) Result
+可选择 PubMed、Google Scholar、arXiv、Semantic Scholar、Crossref 和 Europe PMC。关闭 **启用外部文献调研** 后，模块按你提供的参考文献与项目材料工作。选择来源表达检索要求，实际访问仍依赖工具、网络与来源可用性。
 
-- 选择导出类型，点 `Export`，Agent 自动调对应 skill：
-  - `experiment_report` → `mira_engine/skills/export/experiment-report`
-  - `paper_article` → 论文模板
-  - `presentation` → PPT 模板
-  - `metadata` → 项目归档包（含 `task_plan.json`、`results/*`、参考列表）
-- 详见 [结果导出中心](./result-center.md)。
+目标不明确时，模块可以先问“希望调研帮助做出什么决定”，也允许由 AI 建议方向。只要求综述或比较时，不强制生成实验候选。
 
-## 切换阶段时会发生什么
+点击 **启动并进入模块** 后，创建本次 ModuleRun 并进入工作页。正式执行前，AI 会给出范围确认表单，操作见 [确认与继续](./interactions.md)。
 
-- 进 → Research：写入 `phase = research`，UI 把 Experiment / Result 面板置灰。
-- Research → Experiment：自动校验 `objective` 与 `hypothesis` 不为空。
-- Experiment → Result：触发 guardrail 一次最终校验；如果 strict 字段缺失，**会被挡回 Experiment** 并提示缺哪些字段。
+## 选择候选并创建分支
 
-## 验收检查
+1. 在调研列选中一个方向或结果。
+2. 检查实验列是否已有该候选的实验分支。
+3. 点击 **用此候选继续实验**，确认目标、执行模式与输入路径，创建下游运行。
+4. 在实验列选中已完成的实验，再点 **用此候选继续结果交付**。
+5. 如果想比较另一条路线，改选上游候选并继续；已有运行与结果保留。
 
-- [ ] 顶部高亮阶段与 `task_plan.json.phase` 一致。
-- [ ] 切阶段后，UI 面板会立即重新渲染并加载该阶段的对应数据。
-- [ ] 到 Result 阶段后，可以看到导出类型选择 + 上一次的导出记录（如有）。
+实验列以 **实验记录** 为候选，不把每一个 CSV 或图片都算作独立实验。传给交付模块的是所选实验记录及其相关附件；共享文件可能包含其他实验数据，并不意味着那些实验也被选中。
+
+同一形式的交付可能有多个文件，例如 PDF 和可编辑源文件。它们会归为一个交付候选，不需要逐文件选成不同分支。
+
+## 模块完成后的衔接
+
+总览右上角 **模块完成后** 有两项：
+
+- **由我选择下一步**：完成后由你选择候选和下游模块。
+- **自动创建建议模块**：按项目规则创建建议的下游 Run。它不取消下游模块的执行确认；检查是否仍处于排队/待输入，再继续操作。
+
+只有所选候选满足完成条件时，继续按钮才可用。一个实验记录已保存，但所属 ModuleRun 还在等待确认时，需要先完成 [手动实验收尾](./experiment-inputs.md)。
+
+## 旧项目
+
+旧项目仍可能显示基于 `task_plan.json` 的 Research / Plan / Experiment / Result 面板。它与新模块的存储和命令不同。备份项目后再决定迁移；不要把新模块状态手工写进旧计划。详见 [状态与存储](./task-plan-and-status.md)。

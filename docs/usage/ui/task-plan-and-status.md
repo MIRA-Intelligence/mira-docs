@@ -1,112 +1,83 @@
 ---
-sidebar_position: 8
+sidebar_position: 9
 ---
 
-# 任务计划与状态同步
+# 状态、文件与旧项目兼容
 
-## 这一页解决什么
+新模块项目与旧任务计划项目使用不同的状态来源。先识别项目类型，再查对应文件。
 
-UI 上显示的状态、阶段、结果摘要，**全部来自 `task_plan.json`**。当 UI 看起来不对劲时，第一动作不是刷页面，是打开这个文件。
+## 当前模块项目
 
-> 真相在磁盘。`task_plan.json` 在 `~/.mira/workspace/PRJ-xxxx/task_plan.json`。
+```text
+<project>/
+  .mira/
+    project.json                    # 项目元信息与 workflow
+    events.jsonl                    # 持久化事件顺序
+    modules/<run-id>/
+      module.json                   # 本次 ModuleRun 的权威状态
+      checkpoint.json               # 已保存的检查点
+      attempts/<attempt-id>.json    # 每次执行尝试
+    artifacts/<artifact-id>/
+      artifact.json                 # 类型、来源、哈希与文件引用
+      payload.*                     # 发布的内容
+  result/exports/                   # UI 默认请求的交付路径
+```
 
-## 文件结构（删减版）
+| 字段 | 界面含义 |
+| --- | --- |
+| `module_type` | 调研、规划、实验或交付类型 |
+| `status` | 本次 Run 的生命周期 |
+| `module_data.interaction` | 当前待回答表单 |
+| `module_data.interaction_history` | 已保存的交互与决定 |
+| `module_data.experiments` | 该 Run 的原生实验记录 |
+| `inputs` / `outputs` | 明确继承和发布的 Artifact 引用 |
+| `module_data.parent_run_id` / `upstream_selection` | 下游分支来自哪个 Run / 候选 |
+| `revision` | 状态修订号；提交旧版本会冲突，需要重新加载 |
 
-```jsonc
+项目 manifest 的模块索引用于总览；具体运行状态以对应 `module.json` 为准。UI 通过引擎命令修改状态，不建议直接编辑这些文件。
+
+## ModuleRun 的状态
+
+| 状态 | 你应该做什么 |
+| --- | --- |
+| `created` | 草稿，尚未排队 |
+| `queued` | 已排队，检查是否需要开始执行 |
+| `running` | 正在执行，查看当前操作和输出 |
+| `waiting_input` | 回答确认/澄清/继续表单 |
+| `paused` | 检查暂停原因，再决定恢复 |
+| `completed` | 检查发布的结果与文件，再继续下游 |
+| `failed` | 看错误与已有记录，决定重试或新分支 |
+| `cancelled` | 本次运行已取消，保留历史 |
+
+`pending_control` 表示暂停/取消已请求但尚未到达安全边界。点击按钮不意味着任意外部进程已立即终止。
+
+一次 Run 可经历多次 Attempt，例如回答表单后从检查点继续。Attempt 不是一个新的科学实验，实验数量以登记的记录为准。
+
+## 旧 task_plan 项目
+
+旧项目仍由 `task_plan.json` 保存阶段、实验和最终结果，API 仍保留 `/api/plan`。常见字段为：
+
+```json
 {
-  "id": "PRJ-0042",
-  "title": "Dixon-MRI 呼气/吸气分类",
-  "objective": "...",
-
-  "phase": "experiment",                // research / experiment / result
-  "status": "running",                  // pending / running / completed / failed
-  "run_mode": "auto",
-  "agent_profile": "research",
-  "contract_version": "strict",
-
-  "current_experiment": "exp-003",
-
-  "research": {
-    "background": "...",
-    "hypothesis": "...",
-    "references": [{ "id": "ref-1", "title": "...", "url": "..." }]
-  },
-
-  "experiments": [
-    {
-      "id": "exp-001",
-      "method": "3D ResNet, 5-fold CV, AdamW",
-      "status": "completed",
-      "results": {
-        "metrics": { "auc": 0.91, "acc": 0.87 },
-        "findings": "3D 优于 2D，差距随训练量扩大",
-        "artifacts": [
-          { "path": "experiments/exp-001/best_model.pt", "kind": "model" },
-          { "path": "experiments/exp-001/roc.png", "kind": "figure" }
-        ]
-      },
-      "theoretical_proof": "...",
-      "isolation_test": "...",
-      "post_mortem": "...",
-      "evidence_refs": ["ref-1"]
-    }
-  ],
-
+  "phase": "experiment",
+  "experiments": [],
   "result": {
     "output_path": "result/exports/experiment_report.md",
-    "output_type": "experiment_report",
-    "summary": "..."
+    "output_type": "report",
+    "summary": "阶段结果总结"
   }
 }
 ```
 
-## 字段 → UI 元素 对照
+示例只用于识别旧结构，具体合同以当前引擎 `/api/plan/contract` 返回值为准。旧计划完成判定与模块 Run 完成判定不同；新模块不能通过修改旧 `task_plan.status` 收尾。
 
-| `task_plan.json` 字段 | 对应 UI 位置 |
-| --- | --- |
-| `title` | 项目卡片标题、浏览器标签页 |
-| `phase` | 顶部三段流水线高亮 |
-| `status` | 项目卡片状态徽章颜色 |
-| `current_experiment` | 实验列表里高亮的那一条 |
-| `experiments[].status` | 实验卡片状态徽章 |
-| `experiments[].results.metrics` | 实验详情里的指标表 |
-| `result.output_path` | Result 阶段的 “Open / Download” 按钮 |
-| `result.output_type` | Result 阶段卡片标题（“实验报告 / 论文 / PPT / 元数据”） |
+当前源码合同文档中的部分迁移设计仍是提案。不要假定旧项目已经自动转换，也不要调用尚未实现的 `legacy-conversion` 端点。先备份，保留旧项目可读路径。
 
-## 状态判定规则
+## 排查状态不一致
 
-```mermaid
-flowchart TB
-    Start([判断项目是否 completed]) --> A{result.output_path 存在?}
-    A -- 否 --> B([不算 completed])
-    A -- 是 --> C{"output_type 合法?<br/>experiment_report / paper_article<br/>/ presentation / metadata"}
-    C -- 否 --> B
-    C -- 是 --> D{磁盘上文件真的存在?}
-    D -- 否 --> B
-    D -- 是 --> E([completed ✅])
-```
+1. 确认 API 地址、workspace 和当前项目路径，避免比较不同后端。
+2. 当前模块先查待输入表单、Run 状态与 `pending_control`；旧项目查 `task_plan`。
+3. 刷新项目，必要时重连 UI；引擎用快照与持久化事件重建状态。
+4. 对照日志、`module.json` 和文件是否存在，不只看聊天中的“完成”。
 
-**核心结论：实验都跑完 ≠ 项目 completed。** 必须有合法的最终交付物。
-
-## 排障速查
-
-| 现象 | 80% 的原因 | 直接动作 |
-| --- | --- | --- |
-| “实验都完成了，但项目卡片还是蓝色 Running” | `result.output_path` 还没写 | 进 Result 阶段触发一次导出 |
-| “UI 显示与日志不一致” | UI 缓存了旧 task_plan | 点 “刷新计划” 或重启 UI |
-| “导出完成但卡片没变绿” | `result.output_path` 指向的文件已被删 | 检查 `~/.mira/workspace/PRJ-xxxx/result/exports/` |
-| “current_experiment 指向不存在的 id” | guardrail 还没收尾 | 等 1 个回合，或手动改 task_plan |
-
-## 直接编辑 task_plan.json 安全吗
-
-**安全，但有约束**：
-
-- 必须停掉 `auto` 推进（避免 Agent 同时写）。
-- 不要破坏 JSON schema（必填字段不能少；不确定就先备份）。
-- 改完触发一次 “刷新计划”，让 UI 与运行时一起重新加载。
-
-## 验收检查
-
-- [ ] 任意时刻，UI 上显示的 `phase`/`status`/`current_experiment` 与 task_plan.json 完全一致。
-- [ ] 触发导出后 1-2 秒内，`result.output_path` 写入 + UI 状态变 `Completed`。
-- [ ] 手动删除 `result/exports/<file>` 后再点 “刷新计划”，UI 应回退为非 completed。
+更多协议细节见 [实时同步](./realtime-sync.md)。

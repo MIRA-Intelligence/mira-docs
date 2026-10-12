@@ -1,91 +1,59 @@
 ---
-sidebar_position: 5
+sidebar_position: 10
 ---
 
-# 实时同步机制（WebSocket + REST）
+# 实时同步与断线恢复
 
-## 它解决什么
+当前模块使用 **REST 命令和快照 + workflow WebSocket 事件**。普通对话仍使用 `/ws` 发送消息和接收回复；旧计划保留自己的 REST 入口。
 
-- “我在 UI 看到的 progress 是真的实时吗？”
-- “刷新一下 UI 状态会丢吗？”
-- “后端断了再连上，UI 怎么恢复？”
+## 已实现的端点
 
-## 双通道模型
+下表中的路径由 gateway 提供。若 UI 的 API URL 已包含 `/api`，配置时不要再拼一个 `/api`。
+
+| 方法 | 路径 | 用途 |
+| --- | --- | --- |
+| GET | `/api/health`、`/api/version` | 健康与版本 |
+| GET | `/api/projects` | 项目列表 |
+| GET | `/api/workflow/v1/contract` | 模块协议发现 |
+| GET | `/api/workflow/v1/projects/{project_id}` | 项目快照 |
+| GET / POST | `/api/workflow/v1/projects/{project_id}/runs` | 列出 / 创建运行 |
+| GET | `/api/workflow/v1/projects/{project_id}/runs/{run_id}` | 当前运行 |
+| POST | `/api/workflow/v1/projects/{project_id}/runs/{run_id}/commands` | 暂停、恢复、取消、重试、提交交互等 |
+| GET | `/api/workflow/v1/projects/{project_id}/events` | 按项目序号读取事件 |
+| GET / POST | `/api/workflow/v1/projects/{project_id}/artifacts` | 列出 / 导入产物 |
+| GET | `/api/workflow/v1/projects/{project_id}/artifacts/{artifact_id}/content` | 获取产物内容 |
+| WS | `/ws/workflow/v1` | 模块事件、活动与回复流 |
+| WS | `/ws` | 普通对话与 Run 对话的消息入口 |
+| GET | `/api/plan`、`/api/plan/contract` | 旧计划与其合同 |
+
+## 持久化事件与临时活动
+
+- **持久化**：运行创建、开始、等待输入、完成、失败，交互请求和回答，Artifact 发布等。每个项目有递增的 `project_sequence`，保存在 `events.jsonl`。
+- **临时**：当前操作提示和 token 增量。它们帮助查看进度，不是完成证据，也不会作为旧 token 流在重连后全部回放。
+
+客户端按项目游标重放事件并去重；需要重建时会重新读取快照。两个窗口可以订阅同一个项目，但不要同时修改同一旧 revision。
 
 ```mermaid
 sequenceDiagram
-    participant UI as MiraUI
-    participant G as gateway
-    participant A as Agent
-
-    Note over UI,G: 启动时建立 WS 长连接
-    UI->>G: WS connect /ws
-    G-->>UI: hello + session
-
-    par 实时推送
-        A->>G: tool_hint / token / status
-        G-->>UI: WS event
-    and 拉取重建
-        UI->>G: GET /api/projects
-        G-->>UI: projects[]
-        UI->>G: GET /api/projects/{id}/task_plan
-        G-->>UI: task_plan.json
-    end
-
-    Note over UI,G: 短暂断线时
-    UI--xG: WS drop
-    UI->>G: WS reconnect (+ resume seq)
-    UI->>G: GET /api/.../task_plan (兜底)
+    participant U as MiraUI
+    participant G as Gateway
+    participant D as 项目文件
+    U->>G: REST 提交命令和 revision
+    G->>D: 持久化状态与事件
+    G-->>U: 命令回执
+    G-->>U: workflow_event 与临时活动
+    Note over U,G: 断线后重新连接
+    U->>G: 从已应用 project_sequence 订阅
+    G-->>U: 重放事件或要求读取快照
+    U->>G: 读取当前 Run 和待输入表单
 ```
 
-| 通道 | 用途 | 失败时影响 |
-| --- | --- | --- |
-| **WebSocket** `/ws` | Agent 文字进度、工具调用提示、阶段切换、guardrail 事件 | 临时看不到“流式”更新，但不丢数据 |
-| **REST** `/api/*` | 项目列表、`task_plan.json`、artifact 下载、导出触发 | 列表/详情拉不到，UI 会提示重试 |
+## 暂停与取消
 
-> **核心心智**：实时通道负责“好看”，REST 通道才是“真相”。两者不一致时，**永远以 REST 拉到的 task_plan.json 为准**。
+运行中暂停或取消可能先保存为待处理请求，到执行安全边界后才确认。外部任务的停止属于尽力处理，不保证任何远程作业都立即结束；查看实际回执与状态。
 
-## 端点速查
+停止引擎会让 UI 断线，任务不保证自动恢复。服务恢复后先检查 Run、检查点和已有文件，再决定继续；不要直接重复一个可能已经启动的外部任务。
 
-| 方法 | 路径 | 说明 |
-| --- | --- | --- |
-| `WS` | `/ws` | 主事件流；多种事件类型见下表 |
-| `GET` | `/api/projects` | 项目列表 |
-| `GET` | `/api/projects/{id}/task_plan` | 完整 task_plan |
-| `POST` | `/api/projects/{id}/export` | 触发 Result 导出 |
-| `GET` | `/api/projects/{id}/artifacts/{path}` | 下载 artifact |
-| `GET` | `/api/health` | 健康检查 |
+## 自托管反向代理
 
-## 主要 WS 事件类型
-
-| 事件 | 何时发出 | UI 反应 |
-| --- | --- | --- |
-| `agent.token` | 流式输出每个 token | 拼到当前消息气泡 |
-| `agent.tool_hint` | Agent 调用某 tool / skill | 工具调用提示行 |
-| `experiment.status` | 实验状态变化 | 卡片状态色刷新 |
-| `task_plan.update` | task_plan.json 关键字段写入 | 触发对应面板局部刷新 |
-| `guardrail.start/end` | 进入/离开自动修复回合 | 显示黄色 “Repairing” 徽章 |
-| `result.exported` | Result 导出完成 | 项目 → Completed |
-| `gateway.heartbeat` | 周期心跳（默认 30 分钟） | 维持连接，不展示 |
-
-## “看到不一致” 时的排障
-
-```mermaid
-flowchart TB
-    A[UI 状态与项目实际进展对不上] --> B{右上角连接指示绿吗?}
-    B -- 否 --> C[WS 断线<br/>等自动重连，或手动刷新页面]
-    B -- 是 --> D["点击「刷新计划」<br/>强制 REST 重拉 task_plan"]
-    D --> E{还是不对?}
-    E -- 否 --> Done([解决])
-    E -- 是 --> F[直接打开 task_plan.json<br/>对比字段]
-    F --> G{文件本身就是错的?}
-    G -- 是 --> H[触发一次 guardrail<br/>或回到实验详情手动修复]
-    G -- 否 --> I[多半是 UI 缓存<br/>清浏览器缓存或重启 Electron]
-```
-
-## 验收检查
-
-- [ ] 启动 UI 后右上角显示 “Connected”，`WS` ping 周期 < 30s。
-- [ ] 触发一次实验，能看到 token 流式增长。
-- [ ] 手动停止 `mira gateway` 再启动，UI 在 5 秒内自动重连且数据不丢。
-- [ ] 任何阶段直接访问 `~/.mira/workspace/PRJ-xxxx/task_plan.json`，关键字段与 UI 显示一致。
+代理需要同时支持 `/api/`、`/ws` 和 **`/ws/workflow/v1`**，后两个路径都需要 WebSocket Upgrade。只代理旧 `/ws` 会导致对话正常但模块事件失败。配置见 [自托管部署](../../deployment/self-hosted.md)。

@@ -370,15 +370,15 @@
     "description": "Accent phrase after the product name in hero title"
   },
   "homepage.hero.subtitle.line1": {
-    "message": "MIRA is an open-source, project-level AI assistant framework. Hand the \"research → experiment → report\" loop to an agent: give it a goal, get reproducible experiments, readable reports, and shareable slide decks.",
+    "message": "MIRA is an open-source project AI assistant. Start with research, experiments, or delivery; approve the scope and continue from selected results into new branches.",
     "description": "Hero subtitle, first line"
   },
   "homepage.hero.subtitle.line2": {
-    "message": "Ships with desktop UI, CLI, PyPI package, and Docker images. Plugs into Lark / Slack / Telegram out of the box.",
+    "message": "Ships with desktop UI, CLI, a PyPI package, and Docker self-hosting configuration. Connects to supported messaging channels.",
     "description": "Hero subtitle, second line"
   },
   "homepage.hero.cta.quickstart": {
-    "message": "Quick start in 10 min →",
+    "message": "Quick start →",
     "description": "Quickstart CTA button"
   },
   "homepage.hero.cta.docs": {
@@ -406,7 +406,7 @@
     "description": "Homepage browser tab title"
   },
   "homepage.meta.description": {
-    "message": "MIRA is an open-source, project-level AI assistant framework. Delegate research, experiments, and reports to an agent end to end.",
+    "message": "MIRA manages research, experiments, and delivery as independent modules with execution approval and branch comparison.",
     "description": "Homepage meta description for SEO"
   },
   "homepage.showcase.eyebrow": {
@@ -416,25 +416,25 @@
     "message": "A workbench built for agents"
   },
   "homepage.showcase.lead": {
-    "message": "MiraUI brings the project queue, pipeline view, experiment detail, and result center together in one Electron app. The agent runs in the background while you flip between projects to check progress — export PPT, papers, or experiment_report with a few clicks."
+    "message": "MiraUI combines chats and projects, independent module runs, experiment records, and delivery in one workspace. Choose a direction, approve the scope, compare experiments, and turn selected evidence into a report, paper, or presentation."
   },
   "homepage.showcase.bullet.realtime.label": {
     "message": "Real-time sync"
   },
   "homepage.showcase.bullet.realtime.body": {
-    "message": ": WebSocket push with REST fallback; state comes directly from task_plan.json."
+    "message": ": WebSocket events and REST snapshots keep module and experiment state in sync."
   },
   "homepage.showcase.bullet.forms.label": {
     "message": "Same code for Web & Desktop"
   },
   "homepage.showcase.bullet.forms.body": {
-    "message": ": develop in the browser, ship as Electron, auto-spawns a local mira-engine."
+    "message": ": develop in the browser and use Electron for desktop service controls."
   },
   "homepage.showcase.bullet.rollback.label": {
-    "message": "Pausable & rollback-able"
+    "message": "Approve and compare"
   },
   "homepage.showcase.bullet.rollback.body": {
-    "message": ": every experiment keeps a full trace of prompts, tool calls, and guardrail fixes."
+    "message": ": approve the scope, review experiments, and preserve results from different branches."
   },
   "homepage.showcase.cta.ui": {
     "message": "Explore UI features →"
@@ -443,19 +443,19 @@
     "message": "Download installer"
   },
   "homepage.showcase.screenshot.alt": {
-    "message": "MiraUI main interface"
+    "message": "MiraUI module overview (current components with demonstration data)"
   },
   "homepage.features.research.title": {
     "message": "Project-level research agent"
   },
   "homepage.features.research.desc": {
-    "message": "Built around five primitives — workspace / project / experiment / task_plan — so the agent collaborates long-term rather than chatting once. Every experiment leaves a task_plan.json trace: reproducible and auditable."
+    "message": "Keep independent ModuleRuns, experiment records, and artifacts in one project. Continue from a selected candidate while preserving earlier branches."
   },
   "homepage.features.providers.title": {
     "message": "20+ LLM providers, out of the box"
   },
   "homepage.features.providers.desc": {
-    "message": "OpenAI, Anthropic, OpenRouter, DeepSeek, Azure, Ollama, vLLM and more — all built in. Enable routeByComplexity to send cheap jobs to small models and hard jobs to large ones."
+    "message": "OpenAI, Anthropic, OpenRouter, DeepSeek, Azure, Ollama, vLLM and more. Configure ordered model candidates and team role providers; fallback depends on actual runtime support."
   },
   "homepage.features.forms.title": {
     "message": "CLI / Web / Desktop — three form factors"
@@ -470,16 +470,16 @@
     "message": "Lark, Slack, Telegram, DingTalk, email, Matrix and more. @-mention the agent in a group to run experiments, ship reports, and reply with results — no browser needed."
   },
   "homepage.features.guardrail.title": {
-    "message": "Self-healing guardrails"
+    "message": "Execution approval and experiment control"
   },
   "homepage.features.guardrail.desc": {
-    "message": "Missing fields in an experiment? The model fixes them itself — up to 3 automatic repair rounds before handing off to a human. Strict mode enforces compliant schemas."
+    "message": "Approve the scope before execution. In manual mode, review each experiment before continuing or summarizing. Modules validate inputs and outputs; legacy plans retain field checks."
   },
   "homepage.features.selfhost.title": {
     "message": "Local-first, self-host friendly"
   },
   "homepage.features.selfhost.desc": {
-    "message": "All data lives in ~/.mira/. Single-machine, team docker-compose, or remote gateway — three deployment modes, zero vendor lock-in."
+    "message": "Keep projects in their selected directories. Use a local service, Docker, or a remote gateway, with desktop controls for the local engine."
   },
   "homepage.features.eyebrow": {
     "message": "Core capabilities"
@@ -488,6 +488,6 @@
     "message": "Built for complex, long-running research"
   },
   "homepage.features.lead": {
-    "message": "Not another chatbot. MIRA carries \"think → experiment → report\" end to end and leaves evidence at every step."
+    "message": "Start with the module you need, and keep the scope, experiment results, and delivery evidence traceable."
   }
 }

@@ -7,7 +7,7 @@ sidebar_position: 1
 > 90% 的问题用以下三步定位：
 > 1. `mira status` — 配置与 provider 是否健康。
 > 2. 看 `~/.mira/logs/agent-service.log` 最近 50 行。
-> 3. 直接打开有问题项目的 `~/.mira/workspace/PRJ-xxxx/task_plan.json`，对比 UI 显示。
+> 3. 确认实际项目目录：新模块查看 `.mira/modules/<run-id>/module.json`，旧项目查看 `task_plan.json`。
 
 ```mermaid
 flowchart TB
@@ -71,43 +71,38 @@ flowchart TB
 
 ## 2. 项目状态不一致（UI vs 文件）
 
-**症状**：UI 显示 Running，但 `task_plan.json` 里 `status: completed`；或反过来。
+先核对后端地址、workspace 和实际项目路径。新模块状态以 `.mira/modules/<run-id>/module.json` 为准，旧项目使用 `task_plan.json`。
 
-1. 在项目页点 “刷新计划”，强制走 REST 重拉。
-2. 不行就重启 UI（Web 模式刷浏览器；Desktop 模式 `Cmd/Ctrl+R`）。
-3. 还不行就以 `task_plan.json` 为准。可能是 WS 短暂断开漏推。
-4. 长期反复出现 → 检查后端日志中 `task_plan.update` 事件是否正常发出。
+- `waiting_input`：检查当前确认或继续表单。
+- `pending_control`：暂停/取消请求等待安全边界。
+- 断线后刷新项目并重连，检查快照与事件是否更新。
+- 服务重启后检查暂停原因与已有文件，避免重复可能已启动的外部任务。
 
-详见 [实时同步机制](../usage/ui/realtime-sync.md) 与 [任务计划与状态同步](../usage/ui/task-plan-and-status.md)。
+详见 [状态与存储](../usage/ui/task-plan-and-status.md) 与 [实时同步](../usage/ui/realtime-sync.md)。
 
 ## 3. Provider 401 / 403 / “Unauthorized”
 
-1. `mira status` 看 provider 是否被识别（key 显示前缀即正常加载）。
-2. 直接 `curl` 验证 key 本身有效（OpenAI / Anthropic 都有最小测试 endpoint）。
-3. `provider: "auto"` 时是不是被自动匹配到了错的家？显式写 `provider: "openrouter"` 等。
-4. Azure OpenAI 必须给 `apiBase` + `extraHeaders.api-version`；model 字段是 deployment 名而非模型名。
+1. 优先打开 **模型供应商**，核对启用状态、API Key、API Base 与主模型的供应商，再点 **测试连接**。密钥留空表示保留已存密钥；替换密钥需填写新值。
+2. 先 **保存** 新密钥/地址，再 **从供应商拉取**；拉取不读取未保存的输入。保存后新开简短对话验证生成权限。
+3. 主模型或角色使用「自动检测」时，核对模型是否匹配了预期供应商；可在活动模型中显式选择供应商。
+4. Azure OpenAI 给资源根 API Base 与 key，模型用 deployment 名；纯 CLI 用户再用 `mira status` 检查实际读取的配置路径。连接测试成功也不能证明所有模型请求都可用。
 
 详见 [Provider 与运行时参数](../usage/agent-config/providers-and-runtime.md)。
 
-## 4. “实验都完成了但项目没 completed”
+## 4. 实验已结束，但还不能继续交付
 
-**核心结论**：项目 completed 不是看实验，是看 **最终结果交付物存在**。
+手动实验在保存每个终态记录后等待继续决定，最后一个也一样。先审查结果，再选“结束并汇总”，待所属 Run 完成后继续下游。
 
-按这个顺序检查：
+新模块应检查 Run 输出 Artifact 和真实交付文件；旧项目再查 `task_plan.result.output_path` 等字段。不能只看聊天中的“完成”，也不要求所有其他分支完成才能交付当前结果。
 
-1. `task_plan.json.result.output_path` 是否非空？
-2. `result.output_type` 是否在 `experiment_report` / `paper_article` / `presentation` / `metadata` 之内？
-3. `output_path` 指向的文件在磁盘上真的存在？
-4. 任一条不满足 → 进 Result 阶段重新触发一次导出。
-
-详见 [结果导出中心](../usage/ui/result-center.md)。
+详见 [实验输入与执行](../usage/ui/experiment-inputs.md) 和 [结果交付](../usage/ui/result-center.md)。
 
 ## 5. guardrail 反复提示缺字段
 
 1. 在 [实验详情面板](../usage/ui/experiment-detail.md) 定位是哪几个字段缺。
 2. 直接在 UI 里给出具体文字（不要写 `TODO` / `待补充`，guardrail 把它们当“没填”）。
-3. 如果 strict 太严打扰节奏，临时切回 `contract_version: v1` 走完探索期，再升回 strict 让 guardrail 一次补齐。
-4. 自动修复 3 次仍失败 → 切到 `manual` 模式，给 Agent 一段补充 prompt 指明该字段含义。
+3. 如果 strict 太严打扰节奏，临时切回 Compat 走完探索期，再升回 strict 让 guardrail 一次补齐。
+4. 字段或证据仍缺失时，补充真实材料或修订实验范围；切换实验执行模式不能修复缺失证据。
 
 详见 [Guardrail 与自动修复](../usage/ui/guardrail-and-auto-repair.md)。
 
@@ -116,7 +111,7 @@ flowchart TB
 ```bash
 # macOS / Linux
 lsof -iTCP:18790 -sTCP:LISTEN
-kill -9 <pid>
+# 确认配置归属后，用系统服务 stop 或指定实例 stop --gateway
 ```
 
 或换端口：
@@ -132,73 +127,43 @@ UI 端要同步 `VITE_API_URL` / `VITE_WS_URL`。
 
 通用顺序：
 
-1. `mira channels status` 显示该 channel 是 `connected` 吗？
+1. `mira channels status` 中对应 channel 是否启用？实际连接看 gateway 日志和消息收发。
 2. 看 `~/.mira/logs/agent-service.log` 中以 channel 名开头的行（如 `telegram: ...`）。
 3. 群里只 “@bot” 还是普通消息？`groupPolicy: mention` 必须 @；`open` 才响应所有消息。
-4. `allowFrom` 里有没有把你自己加进去？空数组 = 不限制；非空 = 严格白名单。
-5. 飞书事件回调 401 → 仔细比对 `verificationToken` / `encryptKey`，注意尾部空格。
-6. Slack `socket` 模式不需要公网；`events` 模式必须有公网回调地址。
+4. `allowFrom` 里有没有把你自己加进去？空数组拒绝全部，`["*"]` 明确开放全部；具体账号列表按各通道匹配。
+5. 飞书使用长连接；检查 App ID/Secret、事件订阅与权限，不配置不存在的 `/feishu/events` 回调。
+6. 当前 Slack 仅支持 `socket`，检查 Bot/App Token；`events` 模式未实现。
 
 详见 [Channel 配置](../usage/agent-config/channels.md)。
 
-## 8. Windows CI / 本地有 `Event loop is closed` 警告
+## 8. Windows 出现 `Event loop is closed`
 
-**症状**：
-
-```
-PytestUnraisableExceptionWarning: Exception ignored in: <function BaseSubprocessTransport.__del__>
-RuntimeError: Event loop is closed
-```
-
-这是 Windows `ProactorEventLoop` 在子进程清理时的已知 noise，**测试本身是通过的**，但 GitHub Actions 因为字符串里有 `Error:` 把它误标成 Error。
-
-`mira` 仓库的 `pyproject.toml` 已经加了 `filterwarnings` 抑制它：
-
-```toml
-[tool.pytest.ini_options]
-filterwarnings = [
-    "ignore:Exception ignored in.*BaseSubprocessTransport.*:pytest.PytestUnraisableExceptionWarning",
-]
-```
-
-如果你 fork 后跑测试还看到这条，确认本地 `pyproject.toml` 与上游同步即可。
+这类错误可能来自异步子进程清理，也可能伴随实际任务失败。查看完整堆栈、退出码与失败检查，不根据旧文档把所有包含该文本的报告都判作无害噪声。配置中的 warning 过滤不能证明安装包或进程生命周期正确。
 
 ## 9. `mira agent` 卡在某一步、不出输出
 
 1. 加 `--logs --verbose` 重跑，看到底卡在哪个工具调用。
 2. 是 `web.search` 卡住？检查代理 / 公司网；或换 `provider: duckduckgo` 试试。
-3. 是 `exec` 卡住？先确认是不是某条 shell 在前台跑长任务被 timeout 卡死——`tools.exec.timeout` 默认 60s、上限 600s。**真长任务**（训练 / 大数据预处理 / 长仿真）应该让 agent 调 `exec(command="...", background=true)`，job 落到 `<workspace>/.mira/jobs/<job_id>/`，再用 `bg` 工具 `tail` / `wait` / `kill`，不会再阻塞 loop。详见 [后台长任务](../usage/agent-config/skills-and-tools.md#后台长任务execbackgroundtrue--bg-工具)。
+3. 是 `exec` 卡住？先确认是不是某条 shell 在前台跑长任务被 timeout 卡死——`tools.exec.timeout` 默认 60s、上限 600s。**真长任务**（训练 / 大数据预处理 / 长仿真）应该让 agent 调 `exec(command="...", background=true)`，job 落到 `<工作目录>/.mira/jobs/<job_id>/`，再用 `bg` 工具 `tail` / `wait` / `kill`，不会再阻塞 loop。详见 [后台长任务](../usage/agent-config/skills-and-tools.md#后台长任务execbackgroundtrue--bg-工具)。
 4. 是 LLM 调用卡住？看 provider 是否限流；切到候选模型。
 
-## 10. 从 MedPilot 升级后没自动迁移
+## 10. 旧数据目录与当前配置
 
-正常情况下第一次跑 `mira` 任意命令时会自动迁移。如果没生效（最常见原因：你新机器上 `~/.mira/` 已经存在，迁移会跳过避免覆盖）：
+当前引擎没有 `~/.medpilot` 自动改名或 `MEDPILOT_*` 自动映射逻辑。先备份旧数据，按当前配置显式选择 workspace、项目目录与凭据；不要套用旧文档的 `mv` 覆盖和迁移标记文件步骤。
 
-```bash
-# 备份新生成的（往往是空的）~/.mira
-mv ~/.mira ~/.mira.bak
-
-# 把旧的搬过来
-mv ~/.medpilot ~/.mira
-echo "manual-migrate $(date)" > ~/.mira/.migrated-from-medpilot
-
-# 验证
-mira status
-```
-
-环境变量类似：把 shell rc 里所有 `MEDPILOT_*` 改成 `MIRA_*`。
+UI 的 `medpilot-ui-settings` 到 `mira-ui-settings` 本地设置迁移仍保留；它不会迁移引擎目录。详见 [onboard 与 workspace](../usage/agent-config/onboard-and-workspace.md)。
 
 ## 11. UI localStorage / 设置丢了
 
 UI 设置存在浏览器 `localStorage`，key 为 `mira-ui-settings`。从 MedPilot 升级时会自动从 `medpilot-ui-settings` 拷贝过来。
 
-如果手动清理过浏览器缓存，需要重新在设置页配置 API 地址 / 主题等；项目数据本身在后端 `~/.mira/workspace/` 不会丢。
+如果手动清理过浏览器缓存，需要重新在设置页配置 API 地址 / 主题等；项目文件在后端的实际目录中；清浏览器设置不删除这些文件。
 
 ## 12. Docker 起不来：`Mounts denied` / 权限错误
 
 macOS Docker Desktop 默认只允许挂载 `/Users` 等几个目录。如果你把 workspace 放在 `/data/`，需要在 Docker Desktop → Settings → Resources → File Sharing 添加。
 
-Linux 上常见是 SELinux / AppArmor。临时排查：`docker compose up -d --user $(id -u):$(id -g)`，确认非权限问题后再调 SELinux 策略。
+Linux 上常见是 SELinux / AppArmor。先核对卷权限与容器实际运行用户；持久用户设置应在 compose 的 `user:` 中指定，`docker compose up` 没有旧文档所写的 `--user` 参数。
 
 ## 13. Ollama / 本地模型连不上
 
@@ -224,15 +189,15 @@ curl http://localhost:11434/api/tags    # 应返回模型列表
 
 **症状**：编辑了 `~/.mira/config.json`（换模型、加 key、改 channel），但行为没变。
 
-**根因**：gateway 进程**只在启动时读一次 config**，没有热重载。
+**根因**：手工修改文件不会触发 UI 保存时的运行时更新。换 Provider、密钥或模型时，首选 **模型供应商 → 保存**；当前 gateway 会重新加载该操作提交的运行配置。
 
-跨平台通用的让配置生效写法：
+必须手工修改文件（例如 Channel 或高级字段）时，跨平台通用的让配置生效写法：
 
 ```bash
-mira-engine stop && mira-engine start
+mira-engine restart
 ```
 
-macOS 上单跑 `mira-engine start` 也行（`launchctl kickstart -k` 自带 restart 语义），Linux/Windows 上 `start` 不会强制重启已运行的进程，必须先 `stop`。
+当前 0.3.5rc1 的 `start` 是幂等启动，不强制重启已运行实例。应用配置用 `restart`；旧版 macOS 行为不同。
 
 不要用 `uninstall-service` + `install-service` 来"应用配置"——那是给"换注册的 host/port"或"彻底退役"用的。完整的两层模型见 [本地服务（mira-engine）](../deployment/local-engine-service.md#两层心智模型)。
 
@@ -264,6 +229,18 @@ mira runtime info
 完整字段说明见 [项目级 Python venv 隔离](../usage/agent-config/skills-and-tools.md#项目级-python-venv-隔离toolsexecpython)。
 
 > `manager` 还有一个 `"system"` 选项是 schema 里**预留**的（passthrough：不建 venv，仅 pin 解释器），当前版本**尚未实现**，写了等同 `"off"`。
+
+## 当前模块的常见问题
+
+| 问题 | 处理 |
+| --- | --- |
+| 找不到“实验执行模式”或“额外输入路径” | 升级到配对的 UI 0.4.5rc1 / 引擎 0.3.5rc1；设置位于实验启动窗口 |
+| 额外路径显示不存在 | 使用 gateway 主机的绝对路径；Docker 使用容器内挂载路径 |
+| 改选调研方向后实验列为空 | 新选择没有已有分支；用此候选继续会创建新分支，旧分支仍保留 |
+| 表单回答后又出现问题 | 同一个模块可多轮澄清，回答新的交互 ID，不重复提交旧表单 |
+| 对话正常但模块不更新 | 反代是否支持 `/ws/workflow/v1`；检查模块合同与版本 |
+| 浏览器中引擎启停不可用 | 需要桌面本地服务桥接；远程后端在主机上管理 |
+| 重启引擎后模块未自动继续 | 检查 Run 的恢复/暂停原因和已有外部任务；恢复不保证自动完成 |
 
 ## 17. 还没解决？
 

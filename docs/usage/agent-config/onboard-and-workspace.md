@@ -9,9 +9,13 @@ sidebar_position: 1
 - 第一次通过 PyPI / 源码装完完整 `{{PROJECT_CORE_NAME}}` CLI 后，`mira onboard` 到底做了哪些事？
 - `~/.mira/` 里都有什么、各文件作用？
 - 怎么换 workspace 位置？多人 / 多机器怎么搬？
-- 从 `MedPilot` 升级时怎么自动迁移？
+- 已有旧配置与项目目录如何继续使用？
 
-> 如果你只下载了 GitHub Release 里的单文件 `mira-engine`，它不包含 `mira onboard`。单文件版只负责管理本机 gateway 服务，初始化请使用原生 MIRA-UI（推荐 MIRA-bundle）或改用 PyPI / 源码安装得到完整 `mira` CLI。
+> 如果你只下载了 GitHub Release 里的预构建 `mira-engine`，它不包含 `mira onboard`。预构建版只负责管理本机 gateway 服务，初始化请使用原生 MIRA-UI（推荐 MIRA-bundle）或改用 PyPI / 源码安装得到完整 `mira` CLI。
+
+## 使用 UI 时从哪里开始
+
+桌面 App 和 Web UI 连接引擎后，优先通过 **模型供应商** 配置 Provider 与主模型，通过 **设置** 管理工作区；操作见 [Provider UI 指南](./providers-and-runtime.md)。以下 onboard 和配置文件说明面向完整 CLI、迁移与高级部署。
 
 ## `mira onboard` 实际做的事
 
@@ -29,16 +33,16 @@ flowchart LR
     G --> H
 ```
 
-它**不会**：联网、下载模型、动你已有的 `config.json` 中的 key。
+普通初始化与向导不同：`--wizard` 可以进行登录与配置保存。已有配置应按向导提示检查后保存，不应假定向导完全离线。
 
 ## 工作区目录结构
 
 ```
 ~/.mira/
 ├── config.json                    # 主配置（模型、provider、tools、channels）
-├── workspace/                     # ← Agent 唯一可写区
+├── workspace/                     # 默认工作区；实际项目目录按创建设置
 │   ├── PRJ-0001/
-│   │   ├── task_plan.json         # 项目状态（UI 的真相源）
+│   │   ├── task_plan.json         # 旧计划项目状态；新模块见下文
 │   │   ├── data/                  # 原始/处理后数据
 │   │   ├── experiments/           # 每个实验的脚本+输出
 │   │   │   └── exp-001/
@@ -48,19 +52,24 @@ flowchart LR
 │   │   └── result/
 │   │       └── exports/           # 最终交付物
 │   │           ├── experiment_report.md
-│   │           └── presentation.pptx
+│   │           └── presentation.pdf
 │   └── PRJ-0002/...
 ├── logs/
 │   ├── agent-service.log          # 引擎日志（轮转）
 │   └── gateway.log
-├── runtime/
-│   └── diagnostics/               # mira-engine doctor --export 产物
-└── .migrated-from-medpilot        # 自动迁移完成标记（只在曾迁移过的机器存在）
+└── runtime/
+    └── diagnostics/               # mira-engine doctor --export 产物
 ```
+
+## 当前模块项目的目录
+
+创建项目可设置名称、父目录和最终路径。新模块以 `<project>/.mira/modules/<run-id>/module.json` 保存状态，Artifact 和持久化事件也在该项目 `.mira/` 中；并非所有项目都在默认 workspace 的 `PRJ-*` 目录。详见 [状态与存储](../ui/task-plan-and-status.md)。
+
+额外实验输入可在启动窗口授权本次 Run 只读访问，不授予外部写入权限。参见 [实验输入](../ui/experiment-inputs.md)。
 
 ## 关键配置字段
 
-打开 `~/.mira/config.json`，最少需要确认这几项：
+使用 UI 的用户优先通过界面保存这些设置。纯 CLI 或高级部署时，再核对引擎实际读取的配置文件（默认 `~/.mira/config.json`）：
 
 ```json
 {
@@ -105,7 +114,8 @@ flowchart LR
 
 ```bash
 mkdir -p /data/mira/ws
-mira status        # 确认 workspace 已切换
+mira status        # 确认配置的 workspace
+mira-engine restart  # 已安装服务时，让运行实例重新读取配置
 ```
 
 ### 方案 B：临时覆盖（一次性）
@@ -115,36 +125,33 @@ mira agent -w /tmp/scratch-ws -m "..."
 mira gateway -w /data/mira/ws
 ```
 
-### 方案 C：环境变量（部署时常用）
+### 方案 C：环境变量（配置未显式指定该字段时）
 
 ```bash
 export MIRA_AGENTS__DEFAULTS__WORKSPACE="/data/mira/ws"
 ```
 
+当前加载路径优先使用配置文件中的显式字段。若文件已写有 workspace，上面的 export 不会将它覆盖；应直接修改配置或采用相应 CLI 的 `-w`。
+
 ## 多机器迁移
 
-把 `~/.mira/` 整个 rsync 过去就行：
+先复制到目标机器的独立备份目录，核对配置与项目路径后再选择恢复范围：
 
 ```bash
-rsync -av --delete ~/.mira/ user@host:~/.mira/
+rsync -av ~/.mira/ user@host:~/mira-backup/
 ```
 
-不要漏 `config.json`（含 key）和 `workspace/`（含项目）。`logs/` 和 `runtime/diagnostics/` 可以不带。
+不要漏配置、workspace 与创建在其他位置的项目目录。系统服务定义、PID/锁和运行态文件应在目标机器重新建立，不应原样恢复成运行实例。配置含凭据，按目标机器的访问控制保存。
 
-## 从 MedPilot 自动迁移
+## 已有配置与旧目录
 
-第一次执行任意 `mira ...` 子命令时，引擎会：
+当前引擎没有自动将 `~/.medpilot` 改名为 `~/.mira`，也不自动映射 `MEDPILOT_*` 环境变量。已有旧数据时先备份，使用新配置明确指向要继续使用的 workspace/项目；不要照旧说明整体覆盖当前数据目录。
 
-1. 检查 `~/.medpilot/` 是否存在且 `~/.mira/` 不存在。
-2. 把 `~/.medpilot/` 重命名为 `~/.mira/`。
-3. 在 `~/.mira/.migrated-from-medpilot` 写一个时间戳，避免重复迁移。
-4. 把 `MEDPILOT_*` 环境变量在内存中映射为 `MIRA_*`（仅当 `MIRA_*` 未设置时）。
-
-不需要任何手工动作。如果迁移没发生（例如两个目录都已存在），按 [FAQ §10](../../faq/troubleshooting.md) 手动处理。
+当前仍支持 `channels.web` 到 `channels.ui` 等配置兼容转换；这与迁移整个数据目录是不同操作。
 
 ## 验收检查
 
 - [ ] `mira status` 全绿，`workspace` 路径符合预期。
-- [ ] `~/.mira/workspace` 可读可写（`touch ~/.mira/workspace/.probe && rm $_`）。
+- [ ] `~/.mira/workspace` 可读可写（在实际 workspace 中创建并清理一个专用测试文件）。
 - [ ] `{{PROJECT_UI_NAME}}` 能连上后端，能看到（哪怕是空的）项目列表。
 - [ ] `~/.mira/logs/` 持续有新行写入（运行 `mira gateway` 后观察）。

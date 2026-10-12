@@ -18,49 +18,37 @@ sidebar_position: 4
 
 > 你可以理解为：Tools 是手脚，Skills 是肌肉记忆。
 
-## 内置 Skill 目录
+## 当前 Skill 目录
 
-| 分类 | Skills | 用途要点 |
+当前检出的技能集合位于 `mira_engine/skills/builtin_skills/`。技能包与项目安装的插件可以变化，先在 UI 的可用列表核对，不把旧文档的目录或名称当作固定 API。
+
+| 当前目录 | 示例 | 用途 |
 | --- | --- | --- |
-| `medical-imaging/` | `medical-image-dl-pipeline` | 端到端 DL：分类/分割/检测，5 折 CV，early stopping |
-| | `radiomics`、`pyradiomics` | 影像组学特征提取 + LASSO/mRMR 选特征 |
-| | `monai`、`nibabel`、`pydicom` | 框架包装与常用代码片段 |
-| | `dicom2nifti` | DICOM → NIfTI 转换 |
-| | `medical-imaging-review` | 影像方法学审稿清单 |
-| `ml-statistics/` | `survival-analysis` | KM 曲线、Cox PH、lifelines |
-| | `scikit-survival` | 高维生存分析 |
-| | `scikit-learn` | 经典 ML 工程模板 |
-| | `statistical-analysis` | 假设检验、效应量、置信区间 |
-| `research/` | `deep-research` | 多源调研 + 证据汇总 |
-| | `pubmed-search` | PubMed 检索（自动构造布尔表达式） |
-| | `multi-search-engine` | 多搜索引擎并发 + 去重 |
-| | `peer-review` | 模拟审稿、给修改建议 |
-| | `scientific-method` | 科研问题/假设/方法/结论模板 |
-| | `agent-browser` | 通用浏览器自动化 |
-| | `find-skills` | 在你 workspace 里搜可用 skill |
-| `visualization/` | `matplotlib`、`seaborn` | 出图常用 |
-| | `scientific-slides` | 学术 PPT |
-| | `scientific-schematics` | 流程图 / 示意图 |
-| | `scientific-visualization` | 综合可视化 |
-| `engineering/` | （多个） | 通用代码任务模板 |
-| `documents/` | （多个） | 文档处理（解析、转换） |
-| `cron/` | （多个） | 周期任务 |
-| `summarize/` | （多个） | 长文 / 多文档摘要 |
-| `tmux/` | （多个） | 长进程 / 后台命令托管 |
-| `clawhub/` | （多个） | 实验追踪/调度脚手架 |
-| `weather/` | （多个） | 示例 skill，可参考做新 skill |
-| `github/` | （多个） | 仓库操作 / PR / Issue |
-| `memory/` | （多个） | 长期记忆管理 |
-| `skill-creator/` | `skill-creator` | **生成新 skill** 的模板/校验脚本 |
+| `medical-image-analysis/` | `medical-image-analysis`、`tools/monai` | 医学影像深度学习与工具 |
+| `data_processing/` | `tools/pydicom`、`tools/dicom2nifti`、`tools/nibabel`、`tools/pyradiomics` | 数据整理、转换、特征提取 |
+| `ml-statistics/` | `radiomics`、`survival-analysis`、`statistical-analysis`、`scikit-learn` | 影像组学、统计与建模 |
+| `research/` | `literature-search`、`literature-review`、`scientific-method` | 文献检索、综述与研究设计 |
+| `visualization/` | `matplotlib`、`seaborn`、`plotly`、`scientific-visualization` | 图表与可视化 |
+| `documents/` | `docx`、`pdf`、`pptx`、`scientific-writing` | 文档处理与科研写作 |
+| `engineering/`、`tools/` | `test-driven-development`、`skill-creator`、`find-skills`、`memory`、`cron` | 工程与辅助任务 |
 
-> Skills 都是普通文件夹，路径在 `mira_engine/skills/<分类>/<skill-name>/SKILL.md`。Agent 通过 `find-skills` 自动检索。
-> 想加自己的 skill？放到 `~/.mira/workspace/skills/<your-skill>/SKILL.md`，Agent 同样能发现它。
+旧的 `medical-image-dl-pipeline` 已重组为医学影像分析入口；旧检索名称 `pubmed-search` / `multi-search-engine` 已合并到当前 `literature-search`。找不到旧名称时，选择实际可用的技能，不照旧路径手写调用。
+
+自定义技能可放在当前项目/工作区的 `.mira/skills/<name>/SKILL.md`；兼容路径 `<workspace>/skills/` 仍由 loader 搜索。Skills Plugins 管理已安装技能，以当前项目的启用状态为准。
+
+技能说明不是实验结果或依赖安装证明，仍需核对输入与实际工具执行。
+
+## UI 选择 Skill 与插件
+
+消息输入区可显式选择当前消息必须使用的 Skill；无法继续时，运行时请求批准 fallback，而不是悄悄改用另一套流程。UI 的 Skills Plugins 窗口可查看并管理项目可用的技能/插件；安装、启用和工具能力以当前窗口与后端状态为准。
+
+模块的技能调用仍受当前执行批准约束。团队委派不能跳过主 Run 的确认或手动实验边界。
 
 ## Tool 清单
 
 | Tool | 配置入口 | 是否默认开 | 说明 |
 | --- | --- | --- | --- |
-| `filesystem` | 内置 | ✅ | `read_file` / `write_file` / `list_dir` 等，**强制限制在 workspace** |
+| `filesystem` | 内置 | ✅ | `read_file` / `write_file` / `list_dir` 等，按运行时路径策略检查，实验可授权额外只读输入 |
 | `exec`（shell） | `tools.exec` | ✅ | 子进程执行，带 `timeout`、`pathAppend`、可选 `bwrap` 沙箱、可选 `background=true` |
 | `bg` | 主 loop 自动注册 | ✅（仅主 loop） | 列出 / 监控 / 终止后台任务，配合 `exec(background=true)` 用 |
 | `web` | `tools.web` | ✅ | 抓页面、查搜索引擎 |
@@ -82,11 +70,11 @@ sidebar_position: 4
 }
 ```
 
-> `restrictToWorkspace: true` 强烈建议**始终保持开启**，会限制所有工具的访问范围在 workspace 内。
+> `restrictToWorkspace: true` 启用运行时路径限制。当前实验可通过启动窗口授权额外只读输入，参见 [实验输入](../ui/experiment-inputs.md)。它不是 OS 级沙箱，也不应保证所有外部工具具有相同隔离能力。
 
 ## 项目级 Python venv 隔离（`tools.exec.python`）
 
-> 这是一个**默认关闭、需要显式开启**的特性。打开后，每个 `PRJ-xxxx/` 下都会有一个独立的 `.venv/`，agent 跑 `python` / `pip` / `pytest` 时自动用项目自己的解释器，不再污染系统 / 全局环境。
+> 这是一个**默认关闭、需要显式开启**的特性。启用并实际触发 Python 命令后，在当前项目目录下创建/使用 `.venv/`，agent 跑 `python` / `pip` / `pytest` 时自动用项目自己的解释器，不再污染系统 / 全局环境。
 
 ### 为什么需要它
 
@@ -99,7 +87,7 @@ sidebar_position: 4
 开启后，第一次在某个项目里跑 python 类命令，`exec` 工具会：
 
 1. 在项目目录建 `.venv/`（用 [uv](https://docs.astral.sh/uv/)，速度比 `python -m venv` 快很多）；
-2. 检测项目根的 `pyproject.toml` / `requirements.txt` / `uv.lock`，有就 `uv sync` / `uv pip install -r ...`；都没有就建空 venv，让 agent 按需 `pip install`；
+2. 有 `pyproject.toml` 时执行 `uv sync`，否则有 `requirements.txt` 时安装该文件中的依赖；都没有就建空 venv，让 agent 按需 `pip install`；
 3. 给该项目所有后续子进程把 `<project>/.venv/bin` 注入到 PATH 最前面。
 
 第二次起同一项目就直接复用，不会重复 bootstrap。
@@ -107,7 +95,7 @@ sidebar_position: 4
 ### 前置条件
 
 - 本机 PATH 上要有 `uv >= 0.5.0`（`brew install uv` / `pip install uv` / `curl -LsSf https://astral.sh/uv/install.sh | sh`）。`{{PROJECT_CORE_NAME}}` 桌面 bundle 自带 `uv`，源码安装需要自己装。
-- 没装 `uv` 而 `manager` 又被设成 `"uv"`，第一次触发时会抛 `PythonEnvError`，agent 的 shell 调用会失败。
+- 没装 `uv` 而 `manager` 又被设成 `"uv"`，触发时会报 `PythonEnvError`，agent 的 shell 调用会失败。
 
 ### 配置
 
@@ -137,7 +125,7 @@ sidebar_position: 4
 | 字段 | 默认 | 说明 |
 | --- | --- | --- |
 | `manager` | `"off"` | `"off"` 维持旧行为；`"uv"` 启用本特性；`"system"` 为预留模式（passthrough，仅 pin 解释器、不建 venv），**当前版本尚未实现**，写了等同 `"off"` |
-| `autoBootstrap` | `true` | 第一次遇到 `python` / `pip` / `pytest` / `jupyter` / `ipython` / `uv` 命令时自动建 venv；关掉就只在你手动 `mira runtime ...` 时才建 |
+| `autoBootstrap` | `true` | 第一次遇到 `python` / `pip` / `pytest` / `jupyter` / `ipython` / `uv` 命令时自动建 venv；关闭后不会自动建立项目 venv；需要预先准备环境，`mira runtime` 的当前命令并不提供通用 create-venv 入口 |
 | `venvDir` | `".venv"` | 项目相对路径；可以写绝对路径把所有 venv 集中到外部目录 |
 | `pythonVersion` | `""` | `""` 让 uv 自动选；写 `"3.11"` / `"3.12.4"` 等；首次需要的版本 uv 会自动下载（standalone build） |
 | `linkMode` | `"hardlink"` | `hardlink` 最省盘；`clone` 走 APFS / btrfs reflink；`symlink` / `copy` 是兜底 |
@@ -156,10 +144,10 @@ mira runtime info
 # uv: /opt/homebrew/bin/uv (v0.5.11)
 
 # 跑一次 agent 触发 bootstrap
-mira agent -m "在 PRJ-0019 里跑 python -c 'import sys; print(sys.executable)'"
+mira agent -w /path/to/project -m "跑 python -c 'import sys; print(sys.executable)'"
 
 # 应能看到
-ls ~/.mira/workspace/PRJ-0019/.venv/bin/python
+ls /path/to/project/.venv/bin/python
 ```
 
 相关 CLI（`mira runtime info` / `cache-prune` / `project-gc` / `install-python`）见 [CLI 命令参考](../../cli-reference.md#mira-runtime)。
@@ -171,7 +159,7 @@ ls ~/.mira/workspace/PRJ-0019/.venv/bin/python
 从 v0.3.0 起 `exec` 支持 `background=true`，配合新增的 `bg` 工具实现真正的**后台任务托管**：
 
 - agent 在主 loop 里调 `exec(command="...", background=true, description="...")`：fork 一个 detached 子进程，立刻返回 `{job_id, pid}`，不再受前台 timeout 约束；
-- stdout / stderr 实时落到 `<workspace>/.mira/jobs/<job_id>/{stdout.log, stderr.log}`；
+- stdout / stderr 实时落到 `<工作目录>/.mira/jobs/<job_id>/{stdout.log, stderr.log}`；
 - agent 后续通过 `bg` 工具跨多个 loop 轮次轮询 / tail / wait / kill 这个 job，不会一直阻塞在单次 tool call 上。
 
 ### 哪些 loop 启用了 `bg`
@@ -208,7 +196,7 @@ action 枚举: list | status | tail | wait | kill
 
 绝大多数情况你**不用手动配置**——agent 看到长任务自己会切到 `background=true`。需要你介入的场景：
 
-- **直接看进度**：去 `<workspace>/.mira/jobs/<job_id>/` 看实时日志；旧 job 目录会在新一次主 loop 启动时自动清理。
+- **直接看进度**：去 `<工作目录>/.mira/jobs/<job_id>/` 看实时日志；旧 job 目录由后台任务目录清理逻辑处理。
 - **手动杀 job**：如果引擎挂了导致 registry 丢失，按 `pid` 直接 `kill -TERM <pid>`；或重启 mira 后 registry 会从空开始（**job 不持久化跨重启**）。
 - **不希望某个 agent 走后台**：subagent 自动就不能用，主 loop 想关掉的话目前没有 config 开关，要改代码 `ExecTool(enable_background=False)`。
 
@@ -217,7 +205,7 @@ action 枚举: list | status | tail | wait | kill
 | Provider | 备注 |
 | --- | --- |
 | `duckduckgo` | 默认，无需 key |
-| `brave` | 需 `apiKey`；质量最稳 |
+| `brave` | 需 `apiKey`；需要相应服务凭据 |
 | `tavily` | 需 `apiKey`；适合学术 |
 | `searxng` | 自托管 SearXNG 实例，需 `baseUrl` |
 | `jina` | 需 `apiKey` |

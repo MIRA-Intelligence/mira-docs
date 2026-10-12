@@ -19,6 +19,16 @@
 | 部署说明 | [`docs/deployment/`](docs/deployment/) |
 | 故障排查 | [`docs/faq/troubleshooting.md`](docs/faq/troubleshooting.md) |
 
+## 当前功能基线
+
+本次更新按 MIRA 0.3.5rc1 / MiraUI 0.4.5rc1 核对（2026-10-12）。稳定版仍是 0.3.4 / 0.4.4；RC 新功能见 [更新说明](docs/updates.md)。
+
+新增入口：[确认与继续](docs/usage/ui/interactions.md)、[实验输入与执行](docs/usage/ui/experiment-inputs.md)、[快速对话](docs/usage/ui/quick-chat.md)、[记忆与 SDK](docs/usage/agent-config/memory-and-sdk.md)。
+
+截图由当前 MiraUI 组件重新截取，演示数据与模拟桌面桥接已标注。复现说明见 [截图维护](scripts/screenshots/README.md)。
+
+历史兼容性清理记录：[全站审查报告](maintenance/legacy-content-audit-2026-10-12.md)。
+
 ## 本地开发
 
 ```bash
@@ -66,14 +76,16 @@ node scripts/check-mermaid.mjs   # 解析所有 *.md/*.mdx 中的 mermaid 块，
 push -> npm ci -> npm run build -> peaceiris/actions-gh-pages -> mira-intelligence.github.io:main
 ```
 
+若配置 Tencent SSH Secrets，同一工作流还会调用 rsync 更新 Tencent Cloud；本地脚本 `scripts/deploy-tencent-docs.sh` 是手动入口。
+
 产物被跨仓推送到 [`mira-intelligence.github.io`](https://github.com/MIRA-Intelligence/mira-intelligence.github.io) 仓库的 `main` 分支，由其 GitHub Pages 托管到根域名。认证用 `PAGES_DEPLOY_KEY` Secret（SSH deploy key，只对目标仓库有写权限）。
 
 > 目标仓库不要手工编辑——每次部署都是 `force_orphan: true` 强推，会覆盖本地提交。
 
 ## 导出 PDF
 
-主要内容（`docs/usage/`、`docs/deployment/`、`docs/faq/`）保持纯 Markdown，可被 `pandoc` / `mdbook` / `docsify-to-pdf` 等工具直接消费。
+正文以 Markdown 为主，部分页面使用 MDX 组件、站内路由和 Mermaid。导出 PDF 时可从构建后的网页打印；使用 `pandoc` 等工具前，需处理 MDX、图片路径与图表渲染，不能假定所有源文件都可直接转换。
 
 ## License
 
-`MIRA-Intelligence` 组织默认采用 GPL-3.0-or-later，文档随仓库一致。
+本仓库 `package.json` 声明 `ISC`，当前未包含独立 LICENSE 文件。文档授权以维护者补充的仓库许可为准，不沿用旧说明中的组织级 GPL 假设。

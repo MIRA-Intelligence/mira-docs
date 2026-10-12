@@ -61,12 +61,14 @@ import {
 
 </ScenarioFallback>
 
+> **版本提示（2026-10-12）**：稳定版是引擎 0.3.4 / UI 0.4.4。本次新增的实验执行模式、额外输入路径、对话批量操作与引擎启停对应 [引擎 0.3.5rc1](https://github.com/MIRA-Intelligence/mira/releases/tag/v0.3.5rc1) / [UI 0.4.5rc1](https://github.com/MIRA-Intelligence/mira-ui/releases/tag/v0.4.5rc1)，均为预发布版。下文截图以当前源码界面为准；`releases/latest` 下载稳定版。更多见 [本次更新](../updates.md)。
+
 ## 通用前置
 
 不管走哪条路，至少需要：
 
 - macOS 12+ / Windows 10+ / Linux x86_64 一台
-- 至少一个 LLM Provider 的 API key（OpenAI / Anthropic / OpenRouter / DeepSeek / 阿里 DashScope / 智谱 / 火山 / Azure / Ollama 等任一即可；OpenRouter 一把钥匙调遍全家，新人最省事）
+- 至少一种可用的模型接入：API key、支持的 OAuth 登录，或已运行的本地模型服务
 - 想跑本地模型：先装好 [Ollama](https://ollama.ai) 并 `ollama pull qwen2.5:14b`
 
 <Scenario id="desktop-local" title="🖥️ 桌面 App · 本机一键">
@@ -101,78 +103,47 @@ import {
 2. 在 `127.0.0.1:18790` 起 gateway
 3. 跳到 Provider 引导
 
-整个过程 10~20 秒。如果卡在「Local engine update failed」，看 [FAQ · 引擎安装失败](../faq/troubleshooting.md)。
+首次启动时间取决于服务安装、系统权限与本地配置。如果卡在「Local engine update failed」，看 [FAQ · 引擎安装失败](../faq/troubleshooting.md)。
 
-### 3. 在 UI 里配置 Provider
+### 3. 在 UI 里配置 Provider（首选）
 
-按引导选 provider、填 API key、确认 **Base URL** 和 **Model name**。常见选择：
+打开顶部四格图标 **模型供应商**，或 **设置 → 管理供应商**。首次引导完成后也可随时回到此页修改，不需要手写 JSON。
 
-- **OpenRouter**：一把 key 调遍主流模型，新人最稳。
-- **OpenAI / Anthropic**：直接用官方账号。
-- **OpenAI Codex / GitHub Copilot**：选 OAuth，会跳浏览器登录，登完即用。
-- **本地 Ollama**：填 `http://localhost:11434/v1`，无需 API key。
+1. 选择供应商并打开 **启用**；填 **API Key** 与 **API Base**，官方地址可按提示留空。
+2. 点击 **测试连接**，再点击右上角 **保存**。测试可使用当前输入；拉取模型需要先保存凭据。
+3. 点击 **从供应商拉取**，在右侧 **可用模型** 中添加需要的模型；无法拉取时可手动添加真实模型 ID。
+4. 点击 **设为主模型**，再次 **保存**，然后新开简短对话验证实际调用。
 
-> Base URL 留空时 UI 会用 provider 的官方默认值；如果你接的是企业代理、私有部署或非默认 Region，**必须**手动填一个能 `curl $apiBase/models` 通的地址。Model name 也要严格按官方命名（带 `-latest` / 日期 / 版本号），打错一个字符就会被服务端 404。
+![首选的模型供应商配置界面](/img/current/provider-settings.png)
 
-<details>
-<summary><b>📋 各家 provider 的 Base URL + Model name 速查表（点击展开）</b></summary>
+*当前 MiraUI 实际组件截图，使用隔离演示配置与模拟模型列表；不代表真实连接测试成功。*
 
-下表给的是**目前各家官方 OpenAI 兼容端口**和**官网在售的代表 model 名**，仅供新手照抄；正式使用前请到对应官网二次确认（API 列偶尔会改、新模型每月都在出）：
+OAuth 使用专用登录引导，此设置页管理模型和角色绑定，不提供 API Key 登录。Ollama、vLLM 与私有网关应填写实际服务地址，模型 ID 使用服务提供的名称。
 
-| Provider | Base URL（OpenAI 兼容端口） | Model name 示例 | 官方文档 |
-| --- | --- | --- | --- |
-| **OpenAI** | `https://api.openai.com/v1` | `gpt-4o` / `gpt-4.1` / `o3-mini` | [platform.openai.com/docs/models](https://platform.openai.com/docs/models) |
-| **Anthropic** | `https://api.anthropic.com` | `claude-opus-4-5` / `claude-sonnet-4-5` / `claude-3-7-sonnet-latest` | [docs.anthropic.com/en/docs/about-claude/models](https://docs.anthropic.com/en/docs/about-claude/models) |
-| **OpenRouter** | `https://openrouter.ai/api/v1` | `anthropic/claude-sonnet-4.5` / `openai/gpt-4o-mini` | [openrouter.ai/models](https://openrouter.ai/models) |
-| **Gemini** | `https://generativelanguage.googleapis.com/v1beta/openai/` | `gemini-2.5-pro` / `gemini-2.5-flash` | [ai.google.dev/gemini-api/docs/models](https://ai.google.dev/gemini-api/docs/models) |
-| **DeepSeek** | `https://api.deepseek.com/v1` | `deepseek-chat` / `deepseek-reasoner` | [api-docs.deepseek.com](https://api-docs.deepseek.com/) |
-| **阿里 DashScope（百炼）** | `https://dashscope.aliyuncs.com/compatible-mode/v1` | `qwen-max` / `qwen-plus` / `qwen3-max` | [help.aliyun.com/zh/model-studio](https://help.aliyun.com/zh/model-studio/getting-started/models) |
-| **智谱 Zhipu / GLM** | `https://open.bigmodel.cn/api/paas/v4` | `glm-4.5` / `glm-4.5-air` | [bigmodel.cn/dev/howuse/model](https://bigmodel.cn/dev/howuse/model) |
-| **Moonshot Kimi** | `https://api.moonshot.cn/v1`（中国）/ `https://api.moonshot.ai/v1`（国际） | `kimi-k2.5` / `moonshot-v1-32k` | [platform.moonshot.cn/docs/intro](https://platform.moonshot.cn/docs/intro) |
-| **字节 火山 / VolcEngine 方舟** | `https://ark.cn-beijing.volces.com/api/v3` | `doubao-seed-1-6-250615`（用你在控制台拿到的 **endpoint id**） | [volcengine.com/docs/82379](https://www.volcengine.com/docs/82379/1099455) |
-| **SiliconFlow 硅基流动** | `https://api.siliconflow.cn/v1` | `Qwen/Qwen3-Coder-480B-A35B-Instruct` / `deepseek-ai/DeepSeek-V3.2` | [docs.siliconflow.cn/cn/api-reference](https://docs.siliconflow.cn/cn/api-reference/chat-completions/chat-completions) |
-| **MiniMax** | `https://api.minimax.io/v1` | `MiniMax-M2` | [platform.minimaxi.com/document](https://platform.minimaxi.com/document/ChatCompletion) |
-| **Mistral** | `https://api.mistral.ai/v1` | `mistral-large-latest` / `ministral-8b-latest` | [docs.mistral.ai/getting-started/models](https://docs.mistral.ai/getting-started/models/models_overview/) |
-| **Groq** | `https://api.groq.com/openai/v1` | `llama-3.3-70b-versatile` | [console.groq.com/docs/models](https://console.groq.com/docs/models) |
-| **AiHubMix** | `https://aihubmix.com/v1` | 跟 OpenAI / Anthropic 同名，直接照抄即可 | [aihubmix.com/models](https://aihubmix.com/models) |
-| **Azure OpenAI** | `https://<your-resource>.openai.azure.com` | **填 deployment 名**（不是公开 model 名） | [learn.microsoft.com/azure/ai-services/openai](https://learn.microsoft.com/azure/ai-services/openai/concepts/models) |
-| **本地 Ollama** | `http://localhost:11434/v1` | `llama3.2` / `qwen2.5:14b` | [ollama.com/library](https://ollama.com/library) |
-| **本地 vLLM** | `http://localhost:8000/v1` | 跟启动 vLLM 时 `--model` 完全一致，如 `Qwen/Qwen2.5-7B-Instruct` | [docs.vllm.ai/en/latest/serving/openai_compatible_server](https://docs.vllm.ai/en/latest/serving/openai_compatible_server.html) |
-| **OpenAI Codex / GitHub Copilot** | 不填（OAuth） | `gpt-5-codex` / `gpt-5.1-codex`（Codex）；`gpt-5` / `claude-sonnet-4.5`（Copilot） | [对应官网控制台](https://copilot.github.com/) |
+详见 [Provider UI 操作与运行参数](./agent-config/providers-and-runtime.md#首选在-miraui-中设置)。纯 CLI、批量部署或未提供 UI 的参数见下方 [高级配置文件参考](#provider-config-ref)。
 
-这张表只列了主流的几家；完整 provider 清单（共 20+ 家）见 [Provider 与运行时参数](./agent-config/providers-and-runtime.md)。
+### 4. 新建项目并启动模块
 
-**Base URL 留空 vs 填值**：UI 输入框留空 = 用 provider 内置的默认值（就是上表里的地址）。如果你的网络环境需要走代理（如港澳/海外回中国 → 用国内加速节点），或者你想接私有部署，就**必须**手动填一个完整的 base URL。
+1. 左侧切到 **项目**，点击 **新建项目**，填写名称与父目录，核对最终目录预览。
+2. 创建后进入项目总览，选择工程、科研或团队 Profile。
+3. 从 **调研 / 实验 / 结果交付** 任意模块开始：填本次目标与相关输入，不必把三栏都跑一遍。
+4. AI 给出执行范围确认后，批准或提出修改意见。
+5. 实验启动窗口可选手动/自动；首次建议手动，每个实验结束后审查并决定是否继续。
+6. 在总览选中已完成的实验，继续结果交付，选择报告、Word 论文、PDF 演示或 ZIP。
 
-**Model name 一定要按官网命名**：例如 OpenAI 的 `o3-mini` 不能写成 `gpt-o3-mini`，Anthropic 必须带 `-latest` 或日期后缀（`claude-3-7-sonnet-latest`、`claude-sonnet-4-5-20251015`），VolcEngine 方舟必须用 **endpoint id**（形如 `ep-2025xxxxx`）而不是 model 名。填错时 UI 会显示一条来自上游的 400/404，从那条报错回头查官网即可。
+![新建项目：名称和最终目录预览](/img/current/create-project.png)
 
-</details>
+*当前窗口局部截图，使用演示名称与路径。*
 
-UI 把结果写到 `~/.mira/config.json`，效果跟手写一样。详细字段参考下面的 [Provider 配置参考](#provider-config-ref)。
+只有快速问答需求时，在 **对话 → 新建对话** 中直接使用。后续可转成项目并带入上下文。操作见 [快速对话](./ui/quick-chat.md)。
 
-### 4. 新建第一个项目
+### 5. 检查是否完成
 
-1. 顶栏先选好运行模式：研究类课题点 **科研**（`agent_profile = research`），工程类点 **工程**（`agent_profile = engineer`）。如果只是想做一次性问答 / 工具调用、不打算建项目，那就直接停在 **普通** —— 普通模式跳过 mira research 流水线，无须新建项目就能用。三档的区别详见 [运行模式与 Profile](./ui/run-mode-and-profile.md)。
-2. 点左侧 `+`，填：
-   - `Research description`：详细写明你要研究的目标。
-   - `contract_version`：默认 `compat` 即可，熟了再 `strict`。
-   - `run_mode`：先选 `manual`（每一步看一眼）。
-3. **Research 阶段**：补背景、数据来源、参考文献。Agent 会用 `pubmed-search` / `deep-research` 自动找资料。
-4. **Experiment 阶段**：写明指标和方法。Agent 调对应 skill（如 `medical-image-dl-pipeline`），结果落到 `experiments/exp-001/`，回写 `task_plan.json` 的 `experiments[].results`。
-5. **Result 阶段**：选导出类型（`experiment_report` / `paper_article` / `presentation` / `metadata`），点导出。完成后 UI 显示 `output_path`，文件在 `result/exports/`。
+- 项目目录与 `.mira/project.json` 已创建。
+- 对应模块 Run 的状态、确认表单和实验记录与本次操作一致。
+- 交付模块的输出文件确实存在、可读取并符合所选格式。
 
-<div style={{ textAlign: 'center' }}>
-  <img src="/img/new_project.png" alt="新建项目" width="50%" />
-  <p style={{ marginTop: '8px' }}>图：新建项目</p>
-</div>
-
-### 5. 验收清单
-
-- [ ] `~/.mira/workspace/PRJ-xxxx/task_plan.json` 存在且 `phase = result`、`status = completed`
-- [ ] `result.output_path` 对应文件存在并可下载
-- [ ] UI 项目卡片显示 `completed`
-
-任一条不满足，按 [FAQ 与故障排查](../faq/troubleshooting.md) 对应小节定位。
+新模块状态在 `.mira/modules/<run-id>/module.json`。旧 `task_plan` 项目的结构不同，见 [状态与存储](./ui/task-plan-and-status.md)。
 
 </Scenario>
 
@@ -214,9 +185,11 @@ UI 把结果写到 `~/.mira/config.json`，效果跟手写一样。详细字段�
 
 > 同机房不带 TLS 测试：`http://10.0.0.5:18790/api` + `ws://10.0.0.5:18790/ws`。生产环境强烈建议走 nginx/caddy + TLS。
 
-### 4. 新建第一个项目
+### 4. 在 UI 配置 Provider 并新建项目
 
-跟本机一键场景完全一致，见 **🖥️ 桌面 App · 本机一键 · 第 4 步**（点上面的卡片切换查看）；区别只是文件落在**服务端**的 `~/.mira/workspace/`。
+连接远程引擎后，首选 **模型供应商** 页面配置与测试；保存修改的是服务器上的配置，详见 [Provider UI 操作](./agent-config/providers-and-runtime.md)。
+
+创建项目跟本机一键场景一致，见 **🖥️ 桌面 App · 本机一键 · 第 4 步**（点上面的卡片切换查看）；路径必须按**服务端**的实际项目目录填写。
 
 ### 5. 多用户协作
 
@@ -242,7 +215,7 @@ pip install mira-engine
 
 ```bash
 mira --version
-mira --help    # 应当看到 onboard / gateway / serve / agent / status / channels 6 个子命令
+mira --help    # 查看 onboard / gateway / serve / agent / research / workflow 等入口
 ```
 
 > 包名是 `mira-engine`（pip）；命令名是 `mira`（用户 CLI）和 `mira-engine`（本机服务管理 CLI）。两者都在同一个 wheel 里。
@@ -259,11 +232,10 @@ mira onboard --wizard
 2. 写入带占位的 `config.json` 模板。
 3. 交互式向导：选 provider、填 key 或走 OAuth。
 
-> 用过旧的 MedPilot？第一次跑 `mira` 任意子命令会自动把 `~/.medpilot/` 迁到 `~/.mira/`，并把 `MEDPILOT_*` 环境变量映射到 `MIRA_*`。
 
 ### 3. 选 Provider
 
-简易模式：直接挑下面任一 Tab 把 JSON 贴进 `~/.mira/config.json`。完整字段参考 [Provider 配置参考](#provider-config-ref)。
+纯 CLI 首选上一节的 `mira onboard --wizard` 向导。需要手工部署时才使用以下 JSON；若同时使用 MiraUI，请优先在 [模型供应商界面](./agent-config/providers-and-runtime.md) 设置。完整字段参考 [高级配置文件参考](#provider-config-ref)。
 
 <Tabs groupId="provider">
   <TabItem value="openrouter" label="OpenRouter（一把钥匙）" default>
@@ -352,8 +324,7 @@ mira agent -m "你好，介绍一下你能做什么"
 带 skill 调用的研究任务：
 
 ```bash
-mira agent -m "调研一下最新的 GLP-1 类药物副作用研究，列 5 个最相关的临床试验" \
-  --skill pubmed-search
+mira agent -m "使用当前 literature-search 技能调研 GLP-1 类药物副作用研究，列 5 个相关临床试验"
 ```
 
 进入 REPL：
@@ -399,16 +370,16 @@ pip install mira-engine
 mira --version
 ```
 
-会得到 6 个子命令：`mira onboard / gateway / serve / agent / status / channels`，以及本机服务管理 CLI `mira-engine install-service / start / stop / status / logs`。
+会得到 `mira` 用户 CLI（包括 onboard、agent、research、workflow 等），以及本机服务管理 CLI `mira-engine install-service / start / stop / status / logs`。
 
   </TabItem>
-  <TabItem value="binary" label="单文件二进制（无需 Python）">
+  <TabItem value="binary" label="预构建引擎（无需 Python）">
 
-到 [mira Releases](https://github.com/{{PROJECT_ORG_NAME}}/mira/releases/latest) 下载平台对应的二进制（每个文件都带 `.sha256` 校验和）：
+到 [mira Releases](https://github.com/{{PROJECT_ORG_NAME}}/mira/releases/latest) 下载平台对应的二进制（用 release 的 `SHA256SUMS.txt` 校验文件）：
 
 | 平台 | 文件 |
 | --- | --- |
-| Windows (x86_64) | `mira-engine-windows-x86_64.exe` |
+| Windows (x86_64) | `mira-engine-windows-x86_64.zip`（解压后保留完整目录） |
 | macOS (Apple Silicon) | `mira-engine-macos-arm64` |
 | macOS (Intel) | `mira-engine-macos-x86_64` |
 | Linux (x86_64) | `mira-engine-linux-x86_64` |
@@ -424,19 +395,18 @@ sudo mv mira-engine /usr/local/bin/
 xattr -dr com.apple.quarantine /usr/local/bin/mira-engine    # macOS 首次解除 Gatekeeper
 ```
 
-> ⚠️ 单文件版**只有** `mira-engine` 服务管理命令（`install-service / start / stop / status / doctor`），**没有** `mira onboard` / `mira agent`。Provider 与 workspace 配置需要手写 `~/.mira/config.json`，或先用 pip 装一份做 onboard，之后再切换到二进制。
+> 预构建版**只有** `mira-engine` 服务管理命令（`install-service / start / stop / status / doctor`），**没有** `mira onboard` / `mira agent`。Provider 配置首选后续安装的 MiraUI「模型供应商」页面；workspace 可在 UI 设置中选择。纯 CLI 初始化再使用完整 `mira` 的 onboard 或手工配置。
 
   </TabItem>
 </Tabs>
 
-### 2. 初始化 + 选 Provider
+### 2. 初始化（完整 CLI 安装）
 
 ```bash
-mira onboard --wizard
-mira status
+mira onboard
 ```
 
-选 provider / 填 key 的 JSON 模板见 **⌨️ 命令行 / 脚本 · 第 3 步**（点上面的卡片切换查看），或下面的 [Provider 配置参考](#provider-config-ref)。
+预构建 `mira-engine` 跳过此命令。Provider 首选在第 4 步连接 UI 后设置；仅使用命令行时可运行 `mira onboard --wizard`。
 
 ### 3. 起后端为后台服务
 
@@ -457,9 +427,11 @@ mira-engine status
 
 启动后默认就连 `127.0.0.1:18790`，无需手动改。状态条变绿即代表 UI 找到了 engine。
 
-### 5. 新建第一个项目
+### 5. 在 UI 配置 Provider，再新建项目
 
-跟本机一键场景一致 — 见 **🖥️ 桌面 App · 本机一键 · 第 4 步**（点卡片切换查看）。
+打开 **模型供应商**，配置凭据、测试后保存、拉取并设为主模型。详见 [Provider UI 操作](./agent-config/providers-and-runtime.md)。
+
+新建项目跟本机一键场景一致 — 见 **🖥️ 桌面 App · 本机一键 · 第 4 步**（点卡片切换查看）。
 
 </Scenario>
 
@@ -484,20 +456,20 @@ npm install
 
 > 仓库根的 `install.sh` 提供一键创建 conda env：`bash install.sh`。
 
-### 2. 初始化 & Provider
+### 2. 初始化
 
 ```bash
-mira onboard --wizard
+mira onboard
 ```
 
-填 Provider JSON 见 **⌨️ 命令行 / 脚本 · 第 3 步**（点卡片切换查看），或下面的 [Provider 配置参考](#provider-config-ref)。
+联调 UI 连接后，优先从 **模型供应商** 配置接入和主模型。只调试 CLI 时可使用 `mira onboard --wizard`；手工配置是高级选项。
 
 ### 3. 联调
 
 ```bash
-# 后端：前台启 gateway，改动文件自动 reload
+# 后端：前台启 gateway，修改后端代码后重新启动
 cd mira
-mira gateway --reload
+mira gateway --host 127.0.0.1 --port 18790
 
 # 另一个终端：前端 Vite + Electron 一起起
 cd mira-ui
@@ -509,7 +481,7 @@ npm run dev:electron
 后端地址可通过 `.env.local` 覆盖：
 
 ```bash
-VITE_API_URL=http://localhost:18790
+VITE_API_URL=http://localhost:18790/api
 VITE_WS_URL=ws://localhost:18790/ws
 ```
 
@@ -540,9 +512,9 @@ npm run dist:bundle:win   # 含本机 engine 的 Windows bundle
 
 ---
 
-## Provider 配置参考 \{#provider-config-ref\}
+## Provider 高级配置文件参考 {#provider-config-ref}
 
-普通 API key provider 可以直接编辑 `~/.mira/config.json`。OAuth provider（OpenAI Codex / GitHub Copilot）不能手写 key，必须走 `mira onboard --wizard` 的浏览器登录流程。
+**使用 MiraUI 时优先使用 [模型供应商界面](./agent-config/providers-and-runtime.md)**。以下示例仅用于纯 CLI、批量部署或界面未提供的字段。OAuth 凭据不能手写 API Key，应使用专用登录引导；完整 CLI 可运行 `mira onboard --wizard`。
 
 <details>
 <summary><b>选项 A：OpenRouter（最简单，一把钥匙调全家）</b></summary>
@@ -638,20 +610,20 @@ mira onboard --wizard
 
 </details>
 
-完整 provider / 模型 / 路由参数：[Provider 与运行时参数](./agent-config/providers-and-runtime.md)、[模型路由（Router）模式](./agent-config/model-router.md)。
+完整 Provider / 模型 / 候选参数：[Provider 与运行时参数](./agent-config/providers-and-runtime.md)、[模型选择与候选回退](./agent-config/model-router.md)。
 
 ## 下一步去哪
 
 ### 用得更顺手
 
-- [核心概念](../concepts.md) — 弄清楚 task_plan / project / experiment 的边界。
+- [核心概念](../concepts.md) — 弄清楚 project / ModuleRun / experiment / Artifact 的边界。
 - [UI 功能总览](./ui/index.mdx) — 把每个面板的快捷键和按钮过一遍。
-- [运行模式与 Profile](./ui/run-mode-and-profile.md) — 学会切到 `auto`，吞吐量翻倍。
+- [运行模式与 Profile](./ui/run-mode-and-profile.md) — 区分 Profile、实验执行模式和模块衔接。
 
 ### 调优
 
 - [Provider 与运行时参数](./agent-config/providers-and-runtime.md) — 切模型、调温度、改回合上限。
-- [模型路由（Router）模式](./agent-config/model-router.md) — 让便宜模型干便宜的活。
+- [模型选择与候选回退](./agent-config/model-router.md) — 配置默认模型、候选与团队角色。
 - [Skills 与 Tools](./agent-config/skills-and-tools.md) — 看看还有哪些 skill 可用，怎么挂自定义 MCP 工具。
 
 ### 扩展

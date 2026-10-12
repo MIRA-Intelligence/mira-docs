@@ -1,70 +1,49 @@
 ---
-sidebar_position: 4
+sidebar_position: 7
 ---
 
-# 结果导出中心（Result 阶段）
+# 结果交付与导出
 
-## 它在哪 / 长什么样
+可以从一个已完成实验继续交付，也可以在总览的 **结果交付** 栏直接启动，使用已有稿件或材料完成写作、润色、分析和打包。
 
-切到 Result 阶段后看到的中心面板。
+## 选择交付形式
 
-![结果导出中心](/img/result-center.png)
+填写目标并选择一种形式，再点 **启动并进入模块**。AI 会生成包含受众、结构、所选材料与结论约束的交付确认，请审核后批准。
 
-## 它做什么
+![启动结果交付并选择文件形式](/img/current/delivery-launch.png)
 
-把 Experiment 阶段沉淀的指标、发现、artifacts 打包成 **可分享、可归档** 的最终交付物。落地路径都在项目目录的 `result/exports/` 下。
+*当前启动窗口局部截图，目标为演示。*
 
-## 四种导出类型
+| UI 形式 | 默认目标文件 | 格式 |
+| --- | --- | --- |
+| 实验报告 | `result/exports/experiment_report.md` | Markdown |
+| 期刊论文 | `result/exports/journal_article.docx` | 可用 Word 打开的 DOCX |
+| 演示文稿 | `result/exports/presentation.pdf` | PDF；可编辑源文件按实际产出保留 |
+| 项目元数据 | `result/exports/project_metadata.zip` | 项目相关材料归档 |
 
-| 类型 | 输出文件 | 触发的 skill | 适合场景 |
-| --- | --- | --- | --- |
-| `experiment_report` | `result/exports/experiment_report.md`（含 figures） | `mira_engine/skills/export/experiment-report` | 阶段汇报、组会汇报 |
-| `paper_article` | `result/exports/paper_article.md` 或 `.docx` | `mira_engine/skills/export/paper-article` | 期刊投稿初稿 |
-| `presentation` | `result/exports/presentation.pptx` | `mira_engine/skills/export/presentation` | 答辩 / 路演 |
-| `metadata` | `result/exports/metadata.zip`（task_plan + results + refs） | `mira_engine/skills/export/metadata` | 项目归档、移交 |
+这些是当前 UI 请求的目标，不保证每次生成都成功。生成后应检查文件非空、格式正确、内容能打开，并且所引用的指标与文献来自已有证据。
 
-## 导出之后会发生什么
+## 多文件属于一个交付物
 
-```mermaid
-sequenceDiagram
-    participant U as 你
-    participant UI as MiraUI
-    participant G as gateway
-    participant A as Agent
-    participant FS as workspace
+一个交付 Run 可同时发布 PDF、源文件、图片或表格。对于已配置单一交付形式的运行，总览把这些文件归为 **一个交付候选**，选择它会保留整组文件。
 
-    U->>UI: 选 experiment_report → Export
-    UI->>G: POST /api/projects/.../export
-    G->>A: 触发对应 skill
-    A->>FS: 写 result/exports/...
-    A->>G: 回写 task_plan.result.{output_path, output_type, summary}
-    G-->>UI: WS 推送状态更新
-    UI-->>U: 显示导出完成 + Open 按钮
-```
+交付页会展示可用预览和文件入口。遇到不支持内嵌的格式，下载后用相应应用打开。
 
-完成后 `task_plan.json` 会出现：
+## 修改或比较版本
 
-```jsonc
-{
-  "result": {
-    "output_path": "result/exports/experiment_report.md",
-    "output_type": "experiment_report",
-    "summary": "在 77 例 Dixon-MRI 数据上，3D ResNet 优于 2D ..."
-  }
-}
-```
+- 修改受众、提纲或结论范围：在确认表单中选择修改并填写意见。
+- 从另一条实验结果生成报告：回总览改选实验候选，再创建新的交付分支。
+- 已有稿件直接润色：直接启动交付，说明输入文件、需要保留的结构和修改范围。
 
-UI 项目卡片上的 `Completed` 徽章是 **以 `result.output_path` 是否合法为准**，不是看实验是否都跑完。
+交付模块的完成不会替代你对结果和证据的审查，也不会要求所有其他分支都完成。
 
 ## 常见问题
 
-- **导出按钮灰着按不动**：`task_plan.json.experiments[]` 至少要有一条 `completed` 才允许导出。
-- **导出失败**：90% 是 strict 字段缺失。看日志中的 guardrail 提示，回到 [实验详情](./experiment-detail.md) 补齐再导。
-- **想换模板**：所有导出 skill 的 Markdown 模板都在 `mira_engine/skills/export/<type>/` 下，可以拷到 `~/.mira/workspace/skills/export/<type>/` 覆盖。
+| 现象 | 下一步 |
+| --- | --- |
+| 继续交付按钮不可用 | 检查候选是否选中、所属 Run 是否完成；手动实验需先作收尾决定 |
+| 出现等待输入 | 回答当前交付确认或澄清表单 |
+| 已有文字回复但没有文件 | 检查输出 Artifact 和文件，不把回复当作已导出 |
+| 想要 PPTX | 在目标中明确要求可编辑源文件；默认交付要求为 PDF，按最终实际文件验收 |
 
-## 验收检查
-
-- [ ] `result/exports/<file>` 物理存在且大小 > 0。
-- [ ] `task_plan.json.result` 三个字段都已写入。
-- [ ] UI 项目卡片状态在 1-2 秒内变成 `Completed`。
-- [ ] 点 `Open` 能在系统默认应用打开（桌面模式）或下载（Web 模式）。
+旧项目仍使用 `task_plan.json.result`；新项目以 ModuleRun 输出与 Artifact 为准。详见 [状态与存储](./task-plan-and-status.md)。

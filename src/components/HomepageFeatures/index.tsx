@@ -25,7 +25,7 @@ function useFeatures(): Feature[] {
       desc: (
         <Translate id="homepage.features.research.desc">
           {
-            "围绕 workspace / project / experiment / task_plan 五要素建模，让 Agent 长期协作而不是一次性聊天。每一步实验都有 task_plan.json 记录，可复现、可审计。"
+            "在同一项目中保存独立 ModuleRun、实验记录和产物。选择候选继续下游，改变方向时保留已有分支。"
           }
         </Translate>
       ),
@@ -40,7 +40,7 @@ function useFeatures(): Feature[] {
       desc: (
         <Translate id="homepage.features.providers.desc">
           {
-            "OpenAI、Anthropic、OpenRouter、DeepSeek、Azure、Ollama、vLLM 等全部内置。支持 routeByComplexity，便宜的活给 small 模型，难的给 large。"
+            "OpenAI、Anthropic、OpenRouter、DeepSeek、Azure、Ollama、vLLM 等全部内置。可配置有序模型候选和团队角色 Provider，按实际能力回退。"
           }
         </Translate>
       ),
@@ -79,13 +79,13 @@ function useFeatures(): Feature[] {
       emoji: "🛡️",
       title: translate({
         id: "homepage.features.guardrail.title",
-        message: "Guardrail 自动修复",
+        message: "执行确认与实验控制",
       }),
       to: "/docs/usage/ui/guardrail-and-auto-repair",
       desc: (
         <Translate id="homepage.features.guardrail.desc">
           {
-            "实验字段缺失？模型自己回头补。最多 3 次自动修复回合，失败再交给人工。strict 模式可强制接合规字段。"
+            "执行前审核方案；手动实验结束后决定继续或汇总。新模块验证输入和产物，旧任务计划保留字段校验。"
           }
         </Translate>
       ),
@@ -100,7 +100,7 @@ function useFeatures(): Feature[] {
       desc: (
         <Translate id="homepage.features.selfhost.desc">
           {
-            "所有数据落在 ~/.mira/，单机 / 团队 docker-compose / 远程 gateway 三种部署模式都覆盖。零厂商锁定。"
+            "项目保存在实际选择的目录。支持本机服务、Docker 自托管与远程 gateway，桌面端可管理本地引擎。"
           }
         </Translate>
       ),
@@ -142,7 +142,7 @@ export default function HomepageFeatures(): ReactNode {
           <p className={styles.sectionLead}>
             <Translate id="homepage.features.lead">
               {
-                "不是又一个聊天机器人。MIRA 把\"想清楚 → 跑实验 → 写报告\"端到端做完，每一步都留下证据。"
+                "从需要的模块开始，让执行范围、实验结果与交付证据有处可查。"
               }
             </Translate>
           </p>

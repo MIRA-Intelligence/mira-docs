@@ -6,7 +6,7 @@ import useBaseUrl from "@docusaurus/useBaseUrl";
 import styles from "./styles.module.css";
 
 export default function HomepageShowcase(): ReactNode {
-  const screenshot = useBaseUrl("/img/ui-navigation.png");
+  const screenshot = useBaseUrl("/img/current/workflow-overview.png");
 
   return (
     <section className={styles.section}>
@@ -24,7 +24,7 @@ export default function HomepageShowcase(): ReactNode {
             <p className={styles.lead}>
               <Translate id="homepage.showcase.lead">
                 {
-                  "MiraUI 把项目队列、阶段流水线、实验详情、Result 导出中心整合在一个 Electron 应用里。Agent 在后台跑，你随时切换项目看进度，点几下就能导出 PPT、论文、experiment_report。"
+                  "MiraUI 将对话与项目管理、模块运行、实验记录和结果交付整合在一个工作台。选择方向、审核方案、比较实验，再把所选证据整理为报告、论文或演示。"
                 }
               </Translate>
             </p>
@@ -52,11 +52,11 @@ export default function HomepageShowcase(): ReactNode {
               <li>
                 <strong>
                   <Translate id="homepage.showcase.bullet.rollback.label">
-                    {"可暂停 / 可回滚"}
+                    {"可确认 / 可比较"}
                   </Translate>
                 </strong>
                 <Translate id="homepage.showcase.bullet.rollback.body">
-                  {"：每个实验的 prompt、tool 调用、结果都有完整 trace。"}
+                  {"：批准执行范围，逐个检查实验，保留不同分支的结果。"}
                 </Translate>
               </li>
             </ul>
@@ -77,7 +77,7 @@ export default function HomepageShowcase(): ReactNode {
               src={screenshot}
               alt={translate({
                 id: "homepage.showcase.screenshot.alt",
-                message: "MiraUI 主界面截图",
+                message: "MiraUI 模块总览（当前组件，演示数据）",
               })}
               className={styles.shot}
               loading="lazy"

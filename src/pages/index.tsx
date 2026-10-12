@@ -47,14 +47,14 @@ function HomepageHero(): ReactNode {
             id="homepage.hero.subtitle.line1"
             description="Hero subtitle, first line"
           >
-            MIRA 是一个开源的项目级 AI 助手。把"研究 → 实验 → 报告"这条链路交给 Agent，输入一个目标，输出可复现的实验、可读的报告、可分享的 PPT。
+            MIRA 是一个开源的项目级 AI 助手。把"研究 → 实验 → 报告"这条链路交给 Agent，从调研、实验或交付开始，审核执行方案，选择结果继续新的分支。
           </Translate>
           <br />
           <Translate
             id="homepage.hero.subtitle.line2"
             description="Hero subtitle, second line"
           >
-            配套专属桌面 UI、CLI、PyPI包、Docker镜像，飞书 / Slack / QQ 一并接入。
+            配套专属桌面 UI、CLI、PyPI 包、Docker 自托管配置，飞书 / Slack / QQ 一并接入。
           </Translate>
         </p>
         <div className={styles.heroCtas}>
@@ -63,7 +63,7 @@ function HomepageHero(): ReactNode {
             to="/docs/usage/start"
           >
             <Translate id="homepage.hero.cta.quickstart" description="Quickstart CTA button">
-              10 分钟快速开始 →
+              快速开始 →
             </Translate>
           </Link>
           <Link
@@ -169,7 +169,7 @@ export default function Home(): ReactNode {
         id: "homepage.meta.description",
         description: "Homepage meta description for SEO",
         message:
-          "MIRA 是一个开源的项目级 AI 助手框架，把研究、实验、报告生成端到端交给 Agent。",
+          "MIRA 是一个开源的项目级 AI 助手框架，以独立模块管理调研、实验与交付，支持执行确认和分支比较。",
       })}
     >
       <HomepageHero />

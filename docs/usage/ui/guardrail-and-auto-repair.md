@@ -1,71 +1,35 @@
 ---
-sidebar_position: 7
+sidebar_position: 11
 ---
 
-# Guardrail 与自动修复
+# Guardrail 与执行约束
 
-## 它是干什么的
+当前项目的约束包括输入验证、执行前确认、原生实验记录检查和产物路径检查；旧 `task_plan` 还保留字段校验和补齐机制。它们分别解决不同问题。
 
-每次 Agent 写入实验结果或导出最终交付物后，**guardrail** 会按当前 `contract_version` 把字段过一遍：缺哪个补哪个，发现占位文本（`TODO`、`待补充`、`N/A` 等）也算缺失。任何一项不通过都会触发一次专用的 **修复回合**（Agent 自己回头补字段，不打扰你）。
+## 当前模块
 
-> 它不是“拦截器”，而是“自动补丁机制”。你看到 UI 顶端出现黄色 `Repairing` 时，背后就是它在工作。
-
-## 触发与流转
-
-```mermaid
-flowchart TB
-    Write[Agent 写入 results / result] --> Check[guardrail 校验]
-    Check --> OK{字段都齐?}
-    OK -- 是 --> Pass([通过，继续下一步])
-    OK -- 否 --> Repair[发起修复回合<br/>把缺失字段塞进新一轮 prompt]
-    Repair --> Re[Agent 用同一 model 补字段]
-    Re --> Check2[再校验]
-    Check2 --> OK2{齐了?}
-    OK2 -- 是 --> Pass
-    OK2 -- 否 --> Cap{达到修复上限?}
-    Cap -- 否 --> Repair
-    Cap -- 是 --> Stop["暂停 auto-run<br/>UI 提示「需要人工补字段」"]
-```
-
-默认每个实验最多 3 次自动修复回合。3 次仍不齐，会停下让你处理。
-
-## strict 模式下哪些字段会被卡
-
-| 字段 | 期望 | 常见占位（会被识别为“缺失”） |
-| --- | --- | --- |
-| `theoretical_proof` | 解释方法学上为什么有效 | `"TODO"` / `"待补充"` / 空字符串 |
-| `isolation_test` | 至少描述一次变量隔离 | `"N/A"` / `"暂无"` |
-| `post_mortem` | 复盘成败原因 | `"无"` / `"-"` |
-| `evidence_refs` | 至少 1 个引用 ID 或 URL | `[]` |
-| `results.findings` | 真正的文字结论 | 仅含 “请见 metrics” 之类的转引 |
-| `results.artifacts[].path` | 真实可访问路径 | 不存在的占位路径 |
-
-<!-- ## UI 上能看到什么
-**TODO 截图**：项目顶部黄色 `Repairing` 徽章；侧栏 “修复中” 计数；当前实验卡片下方折叠显示的“缺失字段列表 + 已尝试次数”；guardrail 事件流。 -->
-
-## 何时需要你出手
-
-| 情况 | 处理 |
+| 检查 | 用户看到的行为 |
 | --- | --- |
-| 自动修复 3 次仍失败 | 直接进 [实验详情](./experiment-detail.md) 手动补；明显的占位文本可以直接编辑 task_plan.json |
-| 修复回合反复在两个值之间“反复横跳” | 多半是 prompt 不清晰，临时切到 `manual` 模式给 Agent 一段补充说明，再切回 `auto` |
-| 提示字段名你完全没见过 | 检查 `contract_version` 是否被改成了 strict（团队共享 config 时常见） |
-| 项目导出阶段一直被 guardrail 挡在 Experiment | 至少有 1 个实验的 strict 字段没补齐，必须先在该实验上补齐才能进入 Result |
+| 输入路径不可读取 | 启动窗口报错，修正路径后再启动 |
+| 范围尚未批准 | `waiting_input`，显示批准/修改表单 |
+| 手动实验到达终态 | 请求继续一个实验或结束并汇总 |
+| 状态已被其他操作更新 | revision 冲突，需刷新当前 Run |
+| 输出文件或引用不合法 | 发布/完成失败，应检查真实产物 |
 
-## 关闭 / 放宽
+执行确认和手动实验边界由运行时处理，不能仅用聊天回复代替。在团队模式中，委派工具也受当前 Run 的确认与实验边界限制。
 
-不希望被打扰，则可以改用`Compact`模式， 或可在 `~/.mira/config.json` 里：
+结构检查不验证科学真实性：仍需你审查单位、参考、验证划分、对照与源文件。
 
-```json
-{ "agents": { "defaults": {
-  "contract_version": "v1"     // v1 几乎只校验最基础字段
-}}}
-```
+## 旧 task_plan 的字段检查
 
-> 强烈不建议在“给别人交付”的项目上关掉 strict。它的成本只是几次额外回合，价值是确保产出可被审稿。
+旧实验记录可能要求 `results.metrics`、`results.findings`、artifacts，以及严格合同下的理论依据、隔离对照、复盘和证据引用。缺字段、占位内容或不合法的路径可能阻止继续，并要求补齐。
 
-## 验收检查
+具体所需字段与严重程度以当前 `/api/plan/contract` 和界面警告为准。不要把所有失败都归因于 strict，也不要承诺“自动修复三次一定通过”。
 
-- [ ] strict 项目里故意删掉 `theoretical_proof`，下一回合能看到 `guardrail.start` → 自动重写 → `guardrail.end`。
-- [ ] 修复达到上限后 UI 会出现“需要人工”的提示，且 `auto` 推进暂停。
-- [ ] 切回 `v1` 后，原本被卡的字段不再触发 guardrail。
+遇到缺字段时：
+
+1. 在实验详情与日志中找具体问题。
+2. 给出已有证据或说明事实缺失，让 Agent 补齐真实记录。
+3. 没有证据时保留未知/未完成边界，不让模型编造结果来通过检查。
+
+Compat / Strict 是实验合同选择，不会关闭模块执行确认、外部输入读取范围或手动继续边界。详见 [运行模式与 Profile](./run-mode-and-profile.md)。

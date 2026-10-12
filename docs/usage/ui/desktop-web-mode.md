@@ -1,5 +1,5 @@
 ---
-sidebar_position: 9
+sidebar_position: 12
 ---
 
 # Web / Desktop 双模式
@@ -11,7 +11,7 @@ sidebar_position: 9
 - **Web 模式**：浏览器访问 Vite dev server / 静态构建产物。
 - **Desktop 模式**：Electron 包裹的桌面应用，可联调可打包安装。
 
-> 两者共用 React 组件、状态机、API client，只在 “怎么找到 mira gateway” 与 “怎么打开本地文件” 这两件事上有区别。
+> 两者共用 React 组件、状态机、API client，桌面版另有本地文件选择、引擎服务管理与更新能力。
 
 ```mermaid
 flowchart LR
@@ -22,11 +22,13 @@ flowchart LR
     subgraph Desktop
         Electron[Electron 主进程] --> Renderer["Renderer 进程<br/>(同样的 React)"]
         Renderer -->|REST/WS| GW
-        Electron -->|spawn| EngineExe[mira-engine.exe / mira-engine]
+        Electron -->|服务管理| EngineExe[mira-engine.exe / mira-engine]
     end
 ```
 
 ## 用哪个
+
+Web 和 Desktop 均首选 **模型供应商** 界面设置凭据、主模型与团队角色，无须编辑 JSON；详见 [Provider UI 指南](../agent-config/providers-and-runtime.md)。保存作用于当前连接的引擎，远程模式修改服务器配置。
 
 | 你的需求 | 选 |
 | --- | --- |
@@ -51,7 +53,7 @@ npm run dev
 可通过 `.env.local` 指定后端地址：
 
 ```bash
-VITE_API_URL=http://localhost:18790
+VITE_API_URL=http://localhost:18790/api
 VITE_WS_URL=ws://localhost:18790/ws
 ```
 
@@ -62,7 +64,7 @@ npm run build:web
 # 产物在 dist/，把它扔到任意静态服务器（nginx / caddy）即可
 ```
 
-把 nginx 反代加上 `/api` 与 `/ws` 转到 `mira gateway` 端口就完成部署。模板见 [自托管部署](../../deployment/self-hosted.md)。
+把 nginx 反代加上 `/api`、`/ws` 与 `/ws/workflow/v1` 转到 `mira gateway` 端口就完成部署。模板见 [自托管部署](../../deployment/self-hosted.md)。
 
 ## Desktop 模式
 
@@ -85,12 +87,12 @@ Electron 主进程会：
 
 1. 起一个内部的 Vite dev server。
 2. 打开窗口加载它。
-3. 按需 `spawn` 本地的 `mira-engine`（如果你已 `pip install` 或装了 PyInstaller 版的可执行文件）。
+3. 使用桌面引擎桥接管理已配置的本地服务，或按设置连接手动/远程后端。
 
 ### 打包
 
 ```bash
-npm run build:electron     # 只打包 renderer（不出安装包）
+npm run build:electron     # 构建 Electron main/preload/renderer，不出安装包
 npm run dist               # 出 standalone 安装包到 release/
 npm run dist:bundle:mac    # 出 macOS bundle 安装包
 npm run dist:bundle:win    # 出 Windows bundle 安装包
@@ -107,14 +109,13 @@ npm run build:desktop      # 等价 build:web + build:electron
 
 ### Electron 怎么找 `mira-engine`
 
-启动顺序：
+当前 resolver 先查安装包/开发资源中的 bundled engine；没有可用载荷时才查 `MIRA_ENGINE_PATH`。它不扫描系统 PATH，环境变量也不能覆盖已经找到的 bundled engine。
 
-1. 已设置 `MIRA_ENGINE_PATH` 环境变量 → 直接用它。
-2. 系统 `PATH` 上能找到 `mira-engine`（或 Windows 的 `mira-engine.exe`） → 用它。
-3. 如果是 `MIRA-bundle`，再回落到安装包内置的 PyInstaller 二进制。
-4. 如果是 `MIRA-standalone` 且前几步都找不到，就只能连接远程后端，或等待你手动安装本机引擎。
+开发联调没有内置载荷时，可将 `MIRA_ENGINE_PATH` 设为实际可执行路径。已经自行启动的本地或远程 gateway，可以使用手动连接模式。
 
-> 想强制 Electron 用你 `pip install -e .` 的开发版？`export MIRA_ENGINE_PATH=$(which mira-engine)` 后再 `npm run dev:electron`。
+## 本机服务控制
+
+桌面设置中的本地模式可启动、停止、重启引擎并刷新状态。浏览器没有 Electron 服务桥接；远程部署应在 gateway 主机管理服务。停止/重启前会提示断线与任务中断风险，详见 [本地服务](../../deployment/local-engine-service.md)。
 
 ## localStorage / 设置迁移
 
@@ -124,7 +125,7 @@ UI 的本地设置（API 地址、主题、最近项目等）存在浏览器 `lo
 
 ## 验收检查
 
-- [ ] Web 模式下首页可在 < 2s 加载完成，右上角连接指示绿。
+- [ ] Web 模式下首页与后端接口可正常加载，检查真实连接状态。
 - [ ] Desktop 模式下首次启动若未配置 engine，UI 会提示安装 / 选择 `mira-engine`，或推荐改用内置引擎的 `MIRA-bundle`。
-- [ ] 打包产物在干净的目标系统上能直接启动并连上后端（或本地 spawn 的 engine）。
+- [ ] 打包产物在干净的目标系统上能直接启动并连上后端（或已安装的本地服务）。
 - [ ] 切换 Web/Desktop 模式后，项目列表、设置等数据一致（前提是连同一个后端）。

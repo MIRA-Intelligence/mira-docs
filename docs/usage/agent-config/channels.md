@@ -14,7 +14,7 @@ sidebar_position: 6
 
 | Channel | key | 鉴权 | 群组策略 | 流式输出 |
 | --- | --- | --- | --- | --- |
-| 桌面/浏览器 UI | `ui` | 同源 + CORS 白名单 | — | ✅ |
+| 桌面/浏览器 UI | `ui` | CORS 控制浏览器来源；不是用户鉴权 | — | ✅ |
 | Telegram | `telegram` | Bot Token | `open` / `mention` | ✅ |
 | WhatsApp | `whatsapp` | Bridge URL + Token | `open` / `mention` | — |
 | Discord | `discord` | Bot Token（OAuth 流） | — | — |
@@ -25,8 +25,11 @@ sidebar_position: 6
 | QQ | `qq` | App ID + Secret | — | — |
 | Matrix | `matrix` | homeserver + 账号或 token | `open` / `mention` / `allowlist` | — |
 | 邮件（IMAP+SMTP） | `email` | IMAP/SMTP 凭据 | — | — |
-| WeCom（企微） | `wecom` | （插件化） | — | — |
-| 微信公众号 | `weixin` | （插件化） | — | — |
+| 企业微信 AI Bot | `wecom` | Bot ID/Secret，可选 SDK | — | 依实现 |
+| 个人微信 | `weixin` | 扫码获取 token | — | 依实现 |
+
+
+当前源码可发现 13 个内置 Channel 模块。企微需要其可选 SDK；微信 `weixin` 是个人微信的扫码/长轮询接入，不是公众号回调。能否启用还取决于依赖、凭据与实际平台服务。
 
 ## 全局开关
 
@@ -66,8 +69,8 @@ sidebar_position: 6
 
 | 字段 | 默认 | 说明 |
 | --- | --- | --- |
-| `enabled` | `false` | 总开关。`mira onboard` 默认会写成 `true`；自己改 config 时别忘了开 |
-| `allowFrom` | `[]` | 允许连接的客户端 ID / 来源白名单。`["*"]` 放行全部；空列表等同于"谁都不让连"，UI 会一直转圈 |
+| `enabled` | `false` | 总开关。启动 gateway 会按 UI 启动逻辑处理启用状态；使用 `--no-ui` 可明确禁用，检查实际配置 |
+| `allowFrom` | `[]` | 允许连接的客户端 ID / 来源白名单。`["*"]` 放行全部；空列表拒绝消息发送者；不会为全部 REST 接口提供用户鉴权 |
 | `corsOrigins` | `["*"]` | CORS `Access-Control-Allow-Origin` 列表。`["*"]` 放行全部 origin（适合本机自用）；要锁死的话填 `["https://your-host"]` |
 
 ### Host / port 怎么定？
@@ -101,7 +104,7 @@ mira gateway -v
 curl http://127.0.0.1:18790/api/health     # 应返回 200
 ```
 
-UI 客户端里把后端地址填成 `http://<host>:18790`，连接指示灯转绿就 OK。
+UI 客户端里把 API 地址填成 `http://<host>:18790/api`，WebSocket 地址填成 `ws://<host>:18790/ws`，连接指示灯转绿就 OK。
 
 ## Telegram（最简单）
 
@@ -118,7 +121,7 @@ UI 客户端里把后端地址填成 `http://<host>:18790`，连接指示灯转�
       "reactEmoji": "👀",
       "streaming": true,
       "streamEditInterval": 0.6,
-      "allowFrom": ["@your_username", "123456789"]
+      "allowFrom": ["your_username", "123456789"]
     }
   }
 }
@@ -137,7 +140,7 @@ mira channels status
 - `open`：群里任何消息都响应（聊天群少用）。
 - `mention`：必须 `@` bot 才响应（推荐）。
 
-`allowFrom`：用户名（带 `@`）或 numeric user id 的白名单。空数组 = 不限制。
+`allowFrom`：使用 numeric user ID，或平台传入的 username 字符串（不加 `@`）。空数组拒绝访问；明确开放所有发送者才用 `["*"]`。
 
 ## 飞书
 
@@ -162,7 +165,7 @@ mira channels status
 需要在 [飞书开放平台](https://open.feishu.cn) 后台：
 - 创建企业自建应用，记下 `appId` / `appSecret`。
 - 启用机器人能力，订阅 `im.message.receive_v1`。
-- 配置事件回调（指向你的 `mira gateway` 公网地址 `/feishu/events`）。
+- 事件接收方式使用长连接；当前代码由 Lark WebSocket 客户端接收，不提供旧文档的 `/feishu/events` HTTP 回调。
 - 加密 key / 验证 token 在“事件订阅”页拷贝。
 
 ## Slack
@@ -178,13 +181,14 @@ mira channels status
       "groupPolicy": "mention",
       "groupAllowFrom": ["C01234567"],
       "replyInThread": true,
+      "allowFrom": ["U01234567"],
       "dm": { "enabled": true, "policy": "open" }
     }
   }
 }
 ```
 
-`mode: "socket"` 模式下不需要公网回调，最适合先在工位上跑。后续公网部署时可换 events API。
+当前仅实现 `mode: "socket"`，需要 Bot Token 和 App Token；不支持把 mode 改成 Events API。
 
 ## 邮件（适合后台跑长任务，让 Agent 把结果发回邮箱）
 
@@ -194,6 +198,7 @@ mira channels status
     "email": {
       "enabled": true,
       "consentGranted": true,
+      "allowFrom": ["researcher@example.com"],
       "pollIntervalSeconds": 30,
 
       "imapHost": "imap.example.com",
@@ -234,6 +239,7 @@ mira channels status
       "userId": "@agent:matrix.org",
       "password": "...",
       "e2eeEnabled": true,
+      "allowFrom": ["@researcher:matrix.org"],
       "groupPolicy": "mention",
       "groupAllowFrom": ["!roomid:matrix.org"]
     }
@@ -241,36 +247,25 @@ mira channels status
 }
 ```
 
-## 谁能使唤 Agent — 白名单层级
+## 发送者与群组限制
 
-```mermaid
-flowchart TB
-    M[消息到达 channel] --> G{是否群消息}
-    G -- 否 --> D{"是否在<br/>DM allowFrom"}
-    G -- 是 --> P{"群策略<br/>groupPolicy"}
-    P -- open --> A
-    P -- mention --> Q{"是否<br/>@ 到 bot"}
-    Q -- 是 --> A
-    Q -- 否 --> Drop1[忽略]
-    P -- allowlist --> AL{"用户/房间<br/>是否在 allowFrom"}
-    AL -- 是 --> A
-    AL -- 否 --> Drop2[忽略]
-    D -- 命中 --> A
-    D -- 不命中 --> Drop3[忽略]
-    A[交给 Agent 处理]
-```
+通用 `allowFrom` 中，空列表拒绝全部发送者，`["*"]` 明确开放全部；具体 ID 列表只允许匹配的发送者。Telegram 还支持当前实现的 ID/username 匹配。
+
+Slack 与 Matrix 等通道还会检查 DM/群组策略、房间/频道名单和是否提及机器人。满足群策略不等于绕过通用发送者名单；按具体通道配置并分别验证允许与拒绝的账号。
+
+CORS 和客户端自报 ID 不是 REST 用户鉴权。团队共享后端应使用实际部署的访问控制，不能把这套消息过滤当作项目级权限隔离。
 
 ## 排障 checklist
 
 - 配完没反应？先看 `mira channels status`，再看 `~/.mira/logs/agent-service.log` 中对应 channel 的报错。
 - Telegram 收不到消息？多半是 `allowFrom` 没把你自己加进去。
-- 飞书事件回调 401？检查 `verificationToken` 与 `encryptKey` 是否完全匹配。
+- 飞书无法接收？检查应用 ID/Secret、长连接事件订阅、权限和允许的用户 open_id。
 - 长消息被截断？看 `channels.<name>.maxBodyChars`（邮件）或对应平台限制。
 
 详见 [FAQ §7](../../faq/troubleshooting.md)。
 
 ## 验收检查
 
-- [ ] `mira channels status` 显示对应 channel 为 `connected`。
-- [ ] 在被允许的对话里说一句话，Agent 能在数秒内回复（不接 streaming 时为整段，接了 streaming 时为流式）。
+- [ ] `mira channels status` 显示对应 channel 已启用；实际连接以 gateway 日志与收发消息为准。
+- [ ] 在被允许的对话里说一句话，Agent 能返回实际回复（不接 streaming 时为整段，接了 streaming 时为流式）。
 - [ ] 切到不被允许的账号说话，Agent 不响应（不要把白名单测试当成 bug）。

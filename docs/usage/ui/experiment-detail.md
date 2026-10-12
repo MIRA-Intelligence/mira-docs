@@ -1,63 +1,40 @@
 ---
-sidebar_position: 3
+sidebar_position: 6
 ---
 
-# 实验详情面板（指标、证据、工件）
+# 实验详情：指标、证据与工件
 
-## 它在哪 / 长什么样
+在实验模块或总览中选中一个实验，进入详情。当前模块的实验来自该 Run 的 `module_data.experiments`；相同实验 ID 可以出现在不同 Run 中，界面以 Run + 实验 ID 区分。
 
-在 Experiment 阶段的实验列表里点任意一条进入。**TODO 截图**：左侧元信息（id/method/status/profile）、中部指标表（metrics）、右侧 artifacts 列表（路径 + 缩略图）、底部结论与 next 步骤。
+![当前实验详情：问题、方法、指标和结论](/img/current/experiment-detail.png)
 
-![实验详情](/img/experiment-detail.png)
+*真实详情组件截图，数值与内容均为演示数据，不能用于性能比较。*
 
-## 它做什么
+## 按这个顺序审核
 
-把一次实验跑出来的所有 **可验证证据** 集中在一页，方便你判断 “这个实验真的完成了吗”、“结论站不站得住”。
+| 内容 | 检查什么 |
+| --- | --- |
+| 状态与所属 Run | 是待运行、运行中、完成、失败还是跳过；是否属于当前分支 |
+| 问题、假设与方法 | 输入、参考、变量和评价方案是否明确 |
+| `results.metrics` | 指标名、单位、评价集与数值是否有来源 |
+| `results.findings` / 结论 | 是否与真实结果一致，是否说明局限 |
+| artifacts / evidence refs | 文件能否读取，是否支撑相应结论 |
+| 理论依据、隔离对照、复盘 | 解释方法、控制变量和失败/异常原因 |
 
-## 字段总表（按重要性排序）
+完成状态表示记录已完成，不是科学结论已经正确。要结合源文件、评价划分、误差和对照审查。
 
-| 字段 | 在哪看 | 含义 | 缺失会怎样 |
-| --- | --- | --- | --- |
-| `status` | 顶部 | `pending`/`running`/`completed`/`failed` | — |
-| `results.metrics` | 中部表格 | 数字指标，如 `{ "auc": 0.91, "dice": 0.85 }` | 实验视为没产出 |
-| `results.findings` | 中部 Markdown | 文字结论 | 后续报告会缺“讲什么” |
-| `results.artifacts` | 右侧列表 | 产物文件路径列表 | 结论无法溯源 |
-| `method` | 左侧元信息 | 实验方法描述 | 对照分析会缺字段 |
-| `theoretical_proof` *(strict)* | 底部 | 理论或方法依据 | guardrail 触发修复回合 |
-| `isolation_test` *(strict)* | 底部 | 隔离对照（变量控制） | guardrail 触发修复回合 |
-| `post_mortem` *(strict)* | 底部 | 失败/异常复盘（成功也填，作为 post-hoc 分析） | guardrail 触发修复回合 |
-| `evidence_refs` *(strict)* | 底部 | 引用的文献/链接 ID 列表 | guardrail 触发修复回合 |
+## 一个 Run 内的多个实验
 
-> 带 `*(strict)*` 的字段只在 `contract_version = strict` 时强制要求。
+当前引擎支持登记实验、更新记录和保存终态结果。总览以每个实验记录为候选，而不是把图表文件数量当作实验数量。
 
-## 使用建议
+选择某个完成实验继续交付时，下游会收到该实验的结构化记录和关联产物。其他实验可能共享附件，但不会因此自动加入所选结论。
 
-### 看一个实验是否真的完成
+手动模式下，记录已保存后还需要回答 **继续下一个实验 / 结束并汇总**。所属 Run 尚未完成时，继续下游可能不可用。详见 [实验输入与执行](./experiment-inputs.md)。
 
-按这个顺序快速扫一遍：
+## 文件与失败处理
 
-1. `status = completed` ✅
-2. `results.metrics` 有 ≥1 个有意义的指标 ✅
-3. `results.artifacts` 中有路径 + 路径文件存在 ✅
-4. `results.findings` 不是占位文本（“TODO”/“待补充”一律不算） ✅
-5. （strict）四个研究字段都有真实内容 ✅
+工件保存于项目允许目录，可通过界面预览或下载支持的格式。桌面本机与远程部署的文件打开能力不同，以按钮和路径提示为准。
 
-任一项不通过，要么手动补，要么让 guardrail 跑一轮自动修复。
+失败实验应保留方法、日志和原因，先查清失败范围，再决定重试所属 Run、修订方案或启动新的实验分支。不要把跳过或失败记录当作完成实验引用。
 
-### 复盘一个 `failed` 实验
-
-1. 点 `Open logs`，定位最后一条非 INFO 日志。
-2. 看 `post_mortem` 字段（即使 failed，Agent 也会尝试写一段总结）。
-3. 在该实验下点 `Retry from failure`，Agent 会复用前面已成功的步骤。
-
-### 直接定位文件
-
-- artifact 路径都是相对于 `~/.mira/workspace/PRJ-xxxx/` 的。
-- UI 里点击路径会复制到剪贴板（也支持桌面模式下直接 “在 Finder/Explorer 中显示”）。
-
-## 验收检查
-
-- [ ] 指标表内容与对应 `results.json` / `task_plan.json.experiments[].results.metrics` 一致。
-- [ ] artifact 路径全部可访问（不存在的文件会被标红）。
-- [ ] strict 模式下，所有研究字段都有非占位内容。
-- [ ] 跳到下一个实验时，面板内容立刻刷新（不会停留在上一个实验的数据）。
+旧 `task_plan.json` 项目的字段校验见 [Guardrail](./guardrail-and-auto-repair.md)；新模块的状态与文件位置见 [状态与存储](./task-plan-and-status.md)。

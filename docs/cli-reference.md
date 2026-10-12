@@ -30,14 +30,16 @@ Commands:
   research  Interact with the research-flavoured agent (auto-mode, profiles, contracts).
   status    Show mira status.
   channels  Manage channels.
+  models    Fetch and manage provider model lists.
   runtime   Manage the per-project Python runtime.
+  workflow  Inspect and control modular Project workflows.
 ```
 
 > **`mira agent` vs `mira research`**：从 v0.3.0 起 agent loop 拆成两个：
-> - `mira agent` 走 `BaseAgentLoop`，是 nanobot 风格的轻量 baseline——build context → 调一次 LLM → 持久化 → 返回。**没有** auto-mode、task_plan、token budget、experiment 队列。适合一次性问答、写脚本、debug。
-> - `mira research` 走 `ResearchAgentLoop`（`BaseAgentLoop` 的超集），带研究流水线全部能力：auto-mode 多轮、agent profile（`engineer`/`research`）、`task_plan.json` 协作、`automation_policy` 自动停止策略、跨 round token budget。
+> - `mira agent` 走 `BaseAgentLoop`，是 nanobot 风格的轻量 baseline——处理一个用户请求，可经多次模型/工具迭代后返回。不启用旧研究 auto 编排、task_plan 或 experiment 队列。适合一次性问答、写脚本、debug。
+> - `mira research` 走 `ResearchAgentLoop`，用于旧研究编排：auto-mode 多轮、agent profile（`engineer`/`research`）、`task_plan.json` 协作、`automation_policy` 自动停止策略、跨 round token budget。
 >
-> Gateway / `serve` / UI channel 默认仍然是 research loop（行为不变），只有这两个 CLI 命令明确分流。
+> 当前 UI 模块通过原生 executor 使用共享对话引擎，绕过旧 task_plan 编排。`mira workflow` 与模块 UI 使用同一 WorkflowService。
 
 ### `mira onboard`
 
@@ -46,8 +48,7 @@ Commands:
 ```bash
 mira onboard                  # 用默认路径（~/.mira/）
 mira onboard --wizard         # 交互式向导，逐项填 provider / key / model
-mira onboard -w /tmp/work \   # 指定 workspace
-             -c /tmp/cfg.json # 指定 config 路径
+mira onboard -w /tmp/work -c /tmp/cfg.json  # 指定 workspace 和 config
 ```
 
 | 选项 | 默认 | 说明 |
@@ -92,7 +93,7 @@ mira serve -p 8900 --timeout 180
 
 ### `mira agent`
 
-跑通用 agent（`BaseAgentLoop`）：单轮对话、写脚本、调试 provider/skills。**没有** auto-mode、task_plan、experiment 队列——要这些请用 `mira research`。
+跑通用 agent（`BaseAgentLoop`）：处理一个用户请求、写脚本、调试 provider/skills。不启用旧研究 auto 编排。需要独立项目模块时使用 UI 与 `mira workflow`，旧计划入口为 `mira research`。
 
 ```bash
 mira agent                                          # 进入 REPL
@@ -107,7 +108,7 @@ mira agent -m "..." --no-markdown                   # 关掉 Markdown 渲染（�
 | 选项 | 默认 | 说明 |
 | --- | --- | --- |
 | `-m, --message TEXT` | — | 直接发一句话；省略则进交互式 |
-| `-s, --session TEXT` | `cli:direct` | session ID（决定上下文/记忆隔离） |
+| `-s, --session TEXT` | 每次实例生成独立 ID | session ID（决定上下文/记忆隔离） |
 | `-w, --workspace TEXT` | 配置值 | 临时 workspace |
 | `-c, --config TEXT` | `~/.mira/config.json` | 配置文件 |
 | `--markdown / --no-markdown` | on | Markdown 渲染开关 |
@@ -117,38 +118,57 @@ mira agent -m "..." --no-markdown                   # 关掉 Markdown 渲染（�
 
 ### `mira research`
 
-跑研究 agent（`ResearchAgentLoop`）：带 auto-mode、agent profile、`task_plan.json` 协作、自动停止策略，**这是 UI 后端、`serve`、gateway 默认连的 loop**。CLI 入口让你不开 UI 也能跑全套研究流水线。
+旧研究编排入口，使用 `ResearchAgentLoop` 的 Profile、任务计划和 automation metadata。CLI 的 `auto` 标志不等于自动驱动 UI 的多轮循环；当前模块操作使用下面的 `mira workflow`。
 
 ```bash
-mira research                                              # 交互式 manual 模式
-mira research -m "调研 SAM 在医学影像分割的 SOTA"         # 单次研究任务
-mira research --mode auto --max-experiments 20             # 跑 auto-loop，跑满 20 次实验或目标达成
-mira research --profile engineer -m "..."                  # 切换 AGENTS_*.md profile
-mira research --project-dir ~/.mira/workspace/PRJ-0019     # 指定项目目录
-mira research --max-tokens 200000 --mode auto              # 加 token 预算
+mira research --message "调研医学影像分割方法，保留真实文献来源。"
+mira research --profile engineer --message "审核本项目测试和运行说明。"
+mira research --profile team --project-dir /path/to/project
+mira research --mode auto --max-tokens 200000 --max-experiments 8
 ```
 
-| 选项 | 默认 | 说明 |
-| --- | --- | --- |
-| `--message TEXT` | — | 单次任务消息；省略则进 REPL |
-| `-s, --session TEXT` | `cli:research` | session ID |
-| `-m, --mode {manual,auto}` | `manual` | `auto` 启用自动多轮 loop（受 `automation_policy` 约束）|
-| `-p, --profile {default,engineer,research}` | `default` | 选 `AGENTS_*.md` bootstrap |
-| `--max-tokens INT` | — | automation policy：累计 session token 超过此值自动停 |
-| `--max-experiments INT` | — | automation policy：完成 N 次 experiment 后停 |
-| `--project-dir TEXT` | — | 转发为 `metadata.project_dir`，让 agent 锁定这个项目 |
-| `-w, --workspace TEXT` | 配置值 | 临时 workspace |
-| `-c, --config TEXT` | `~/.mira/config.json` | 配置文件 |
-| `--markdown / --no-markdown` | on | Markdown 渲染开关 |
-| `--logs / --no-logs` | off | 显示运行时日志 |
-| `--verbose / --no-verbose` | off | 显示工具调用 hint（含 skill 名） |
-| `--debug / --no-debug` | off | 等价 `--verbose` |
+| 选项 | 说明 |
+| --- | --- |
+| `--message TEXT` | 单次任务；省略进入 REPL |
+| `-m, --mode manual/auto` | 运行 metadata；自动续轮由 UI channel 路径处理 |
+| `-p, --profile default/engineer/research/team` | Profile |
+| `--max-tokens INT` / `--max-experiments INT` | automation metadata 的预算 |
+| `--project-dir TEXT` | 对应项目目录 |
+| `-s, --session TEXT` | 指定恢复会话；默认每个实例独立 |
+| `-w, --workspace TEXT` / `-c, --config TEXT` | 覆盖工作区或配置 |
+| `--logs` / `--verbose` / `--debug` | 日志与工具提示 |
 
-> `--mode auto` 跑长任务时，建议同时配 `--max-tokens` 和 `--max-experiments` 当兜底。具体停止策略（goals / heuristics / `strictHeuristics` 等）见 [Auto 模式与 Automation Policy](./usage/agent-config/automation-policy.md)。
+注意 `mira research -m` 是模式，消息必须用 `--message`；`mira agent -m` 才是消息。
+
+### `mira workflow`
+
+当前已实现的 CLI 以 **项目目录** 为参数。该目录需要已有 `.mira/project.json`。
+
+```bash
+mira workflow show /path/to/project --json
+mira workflow run list /path/to/project --json
+mira workflow run create /path/to/project initiation --intent "梳理证据与研究方向" --json
+mira workflow run command /path/to/project <run-id> enqueue --json
+mira workflow run command /path/to/project <run-id> pause --json
+mira workflow run command /path/to/project <run-id> resume --json
+mira workflow events /path/to/project --after 0 --limit 100
+```
+
+| 子命令 | 当前能力 |
+| --- | --- |
+| `show` | 项目 workflow 与运行快照；支持 `--json` |
+| `run list` | 列出独立运行；支持 `--json` |
+| `run create <dir> <module-type>` | `initiation / planning / experiment / delivery`；可加 `--intent`、`--enqueue` |
+| `run command <dir> <run-id> <command-type>` | 生命周期命令，如 enqueue、pause、resume、cancel、retry、complete；按状态限制执行 |
+| `events <dir>` | 输出 JSON Lines，支持 `--after` 与 `--limit`（1–500） |
+
+这是状态与生命周期适配器。`create --enqueue` 不等于这个 CLI 会独立启动模型工作；执行仍需 UI/模块运行时。源码 API 设计中的 `project policy`、`run respond`、`artifact export` 等完整命令树尚未全部实现，不要照提案调用。
+
+表单回答、Artifact 内容和其他模块操作使用 [workflow API](./usage/ui/realtime-sync.md)。
 
 ### `mira status`
 
-打印当前配置摘要：provider、模型、workspace、迁移状态、可用 channel。
+打印当前配置摘要：provider、模型、workspace、可用 Provider 配置。
 出问题时第一时间运行它。
 
 ```bash
@@ -164,10 +184,21 @@ Commands:
   login   Login for a specific channel (plugin-aware).
 ```
 
-- `mira channels status`：列出已启用 channel 与其登录状态。
-- `mira channels login <name>`：触发 channel 的登录流程（如 OAuth）。
+- `mira channels status`：列出发现的 channel 与启用配置；不是正在运行的 gateway 连接健康检查。
+- `mira channels login <name>`：仅对实现 login 的 channel 可用；不支持的通道返回错误。
 
 详细的 channel 配置见 [Channel 配置](./usage/agent-config/channels.md)。
+
+### `mira models`
+
+```bash
+mira models fetch <provider>        # 获取服务模型并缓存
+mira models list <provider>         # 读取缓存
+mira models select <provider> --model <model-id>
+mira models clear <provider>       # 清理模型列表缓存
+```
+
+`fetch --select` 可以获取后选择；`list --refresh`、`select --refresh` 会先联网刷新。`select` 会写配置，`clear` 不删除模型权重或项目。服务端需要提供该 Provider 支持的发现能力，不能把有缓存当作在线模型已可用。
 
 ### `mira runtime`
 
@@ -199,7 +230,7 @@ mira runtime install-python                  # 用 config 里的 pythonVersion
 mira runtime install-python --version 3.11   # 一次性覆盖
 ```
 
-幂等：版本已经装过会直接跳过。桌面安装器在首次启动时会调它一次，让 `uv venv --python <ver>` 走暖缓存而不是阻塞下载。
+幂等：版本已经装过会直接跳过。可预先运行，使 `uv venv --python <ver>` 走暖缓存而不是阻塞下载。
 
 #### `mira runtime cache-prune`
 
@@ -215,7 +246,7 @@ mira runtime cache-prune --apply             # 真删
 ```bash
 mira runtime project-gc                                        # 仅列表
 mira runtime project-gc --root ~/.mira/workspace --stale-days 60
-mira runtime project-gc --delete-stale                         # 删 60 天没动过的项目 venv
+mira runtime project-gc --stale-days 60 --delete-stale         # 删除 60 天未活动项目的 venv
 mira runtime project-gc --delete ~/.mira/workspace/PRJ-0019/.venv
 ```
 
@@ -234,15 +265,16 @@ mira runtime project-gc --delete ~/.mira/workspace/PRJ-0019/.venv
 
 `mira-engine` 把 `mira gateway` 包装为可被系统管理（launchd / systemd / Windows Service）的后台服务，并提供升级 / 诊断 / 日志查看入口。**普通使用不需要它**；当你希望关掉终端 Mira 仍在跑，再考虑安装。
 
-如果你下载的是 GitHub Release 里的单文件 `mira-engine` 可执行文件，它只包含这一组服务管理命令，不包含完整 `mira` 用户 CLI；因此不能执行 `mira onboard`、`mira agent` 或前台 `mira gateway`。首次初始化请使用 PyPI / 源码安装得到 `mira` 命令，或搭配原生 `MIRA-UI`（推荐 `MIRA-bundle`）完成配置。
+如果你下载的是 GitHub Release 里的预构建 `mira-engine` 载荷，它只包含这一组服务管理命令，不包含完整 `mira` 用户 CLI；因此不能执行 `mira onboard`、`mira agent` 或前台 `mira gateway`。首次初始化请使用 PyPI / 源码安装得到 `mira` 命令，或搭配原生 `MIRA-UI`（推荐 `MIRA-bundle`）完成配置。
 
 ```
 $ mira-engine --help
 Commands:
-  install-service     注册系统服务（用户级）
+  install-service     注册系统服务（macOS/Linux 用户服务，Windows 系统服务）
   uninstall-service   注销服务
   start               启动服务
   stop                停止服务
+  restart             停止后启动，沿用已有配置
   status              查看服务状态
   logs                跟踪/打印服务日志
   doctor              诊断（环境、端口、配置、依赖）
@@ -259,6 +291,7 @@ mira-engine install-service
 mira-engine start
 mira-engine status
 mira-engine stop
+mira-engine restart
 
 # 跟踪日志
 mira-engine logs
@@ -271,6 +304,8 @@ mira-engine doctor --export
 mira-engine upgrade
 mira-engine upgrade --package mira-engine
 ```
+
+`start` 幂等，不杀死已运行实例；应用直接编辑的配置用 `restart`。独立 gateway 可通过 `--gateway`、`--port` 和相同 `MIRA_HOME` 选择。`--home` 是 OS 用户目录，不是数据目录。详见 [本地服务](./deployment/local-engine-service.md)。
 
 ### 平台注册位置
 
@@ -291,7 +326,7 @@ mira-engine upgrade --package mira-engine
 
 ## 环境变量
 
-所有配置都可以通过 `MIRA_*` 环境变量覆盖（`pydantic-settings` 自动绑定）；嵌套字段用 `__` 分隔。例：
+`MIRA_*` 支持嵌套字段，分隔符为 `__`。当前加载路径中，配置文件的显式值优先于环境变量，不能假定 export 会覆盖已有字段。例：
 
 ```bash
 export MIRA_AGENTS__DEFAULTS__MODEL="anthropic/claude-opus-4-5"
@@ -299,17 +334,10 @@ export MIRA_PROVIDERS__OPENAI__API_KEY="sk-..."
 export MIRA_GATEWAY__PORT=28790
 ```
 
-> 老的 `MEDPILOT_*` 环境变量在第一次启动时会被自动映射到 `MIRA_*`（一次性兼容层）。建议在 shell rc 里直接换成 `MIRA_*`。
+旧 `MEDPILOT_*` 名称不自动映射，应按当前字段重新配置。
 
-## 退出码约定
+## 自动化中的错误处理
 
-| 退出码 | 含义 |
-| --- | --- |
-| 0 | 正常完成 |
-| 1 | 通用错误（详见 stderr） |
-| 2 | 参数错误（typer 校验失败） |
-| 3 | 配置缺失/不合法 |
-| 4 | Provider 鉴权失败 |
-| 5 | 依赖缺失（如未装 Ollama 但选择了它） |
+子命令按各自实现返回退出码；不要把旧文档的“3=配置、4=鉴权、5=依赖”当作统一合同。先检查进程是否成功，再读取该命令实际提供的错误消息或结构化输出。
 
-具体退出码以最新版本为准；若做 CI 集成请用 `mira status --json`（规划中）替代字符串解析。
+`mira workflow show` / `run list` 等已实现 `--json`。`mira status` 当前没有 `--json`，应使用相应 API 的健康、版本或状态接口，而不是调用未实现选项。
