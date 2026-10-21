@@ -83,7 +83,7 @@ import {
 | --- | --- |
 | macOS (Apple Silicon) | `MIRA-bundle-<ver>-mac-arm64.dmg` |
 | macOS (Intel) | `MIRA-bundle-<ver>-mac-x64.dmg` |
-| Windows (x64) | `MIRA-bundle-<ver>-win-x64-setup.exe` |
+| Windows (x64) | `MIRA-bundle-<ver>-win-x64-setup.zip` |
 
 > Linux 暂未提供 bundle 包。Linux 桌面用户请切到 **🧰 CLI + 桌面 UI** 这条路。
 
@@ -95,7 +95,7 @@ import {
   xattr -dr com.apple.quarantine /Applications/MIRA.app
   ```
 
-- **Windows**：双击 `.exe`，按提示完成安装。
+- **Windows**：解压 `.zip`，双击里面的 `setup.exe`，按提示完成安装。
 
 首次启动时 UI 会自动：
 
@@ -161,7 +161,7 @@ OAuth 使用专用登录引导，此设置页管理模型和角色绑定，不�
 | --- | --- |
 | macOS (Apple Silicon) | `MIRA-standalone-<ver>-mac-arm64.dmg` |
 | macOS (Intel) | `MIRA-standalone-<ver>-mac-x64.dmg` |
-| Windows (x64) | `MIRA-standalone-<ver>-win-x64-setup.exe` |
+| Windows (x64) | `MIRA-standalone-<ver>-win-x64-setup.zip` |
 | Linux (x64) | `MIRA-standalone-<ver>-linux-x86_64.AppImage` |
 
 > Standalone 不会替你装本地 engine，但启动时也不强求有；它启动后会卡在「未连接」并提示你填后端地址。
@@ -169,7 +169,7 @@ OAuth 使用专用登录引导，此设置页管理模型和角色绑定，不�
 ### 2. 安装并打开
 
 - **macOS**：拖进 `Applications`，右键 → 打开。
-- **Windows**：双击安装包。
+- **Windows**：解压 `.zip`，双击里面的 `setup.exe`。
 - **Linux**：`chmod +x MIRA-standalone-*.AppImage && ./MIRA-standalone-*.AppImage`。
 
 ### 3. 填远程地址
