@@ -18,7 +18,7 @@ sidebar_position: 2
 flowchart LR
     Code[源码仓库] --> A{制品类型}
     A --> Web["UI 静态站<br/>dist/"]
-    A --> Desktop["UI 桌面安装包<br/>.dmg / .exe / .AppImage"]
+    A --> Desktop["UI 桌面安装包<br/>.dmg / setup .zip / .AppImage"]
     A --> PyPI["mira-engine PyPI<br/>wheel + sdist"]
     A --> Bin["mira-engine 运行载荷<br/>PyInstaller + 校验和"]
 ```
@@ -74,7 +74,7 @@ standalone 命名约定：
 | 平台 | 安装包文件名（约定） |
 | --- | --- |
 | macOS | `MIRA-standalone-<ver>-mac-<arch>.dmg` |
-| Windows | `MIRA-standalone-<ver>-win-<arch>-setup.exe` |
+| Windows | `MIRA-standalone-<ver>-win-<arch>-setup.zip` |
 | Linux | standalone `.AppImage`（当前 Linux 仅提供 standalone） |
 
 bundle 命名约定：
@@ -82,7 +82,9 @@ bundle 命名约定：
 | 平台 | 安装包文件名（约定） |
 | --- | --- |
 | macOS | `MIRA-bundle-<ver>-mac-<arch>.dmg` |
-| Windows | `MIRA-bundle-<ver>-win-<arch>-setup.exe` |
+| Windows | `MIRA-bundle-<ver>-win-<arch>-setup.zip` |
+
+每个平台只发布一个安装包：macOS 为 `.dmg`，Windows 为压缩后的 NSIS 安装程序 `-setup.zip`（解压后运行 `setup.exe`）。不再发布 macOS `.zip`、Windows `.exe`、`.blockmap` 和 electron-updater 清单（`*.yml`）——应用的更新检查只跳转到 Release 页面，不读这些文件。
 
 `MIRA-bundle` 会把平台对应的 `mira-engine` 运行载荷一起打包（Windows 为完整 one-dir 目录）进 Electron 安装包，并在首启时自动注册/拉起本地 service；`MIRA-standalone` 则不会代替你安装本地 engine。
 
