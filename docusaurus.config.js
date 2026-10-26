@@ -126,7 +126,14 @@ const config = {
         items: [
           { to: "/docs", label: "文档", position: "left" },
           { to: "/docs/usage/start", label: "快速开始", position: "left" },
-          { to: "/docs/cli-reference", label: "CLI", position: "left" },
+          {
+            // MIRA Hub 技能市场：同一标签页直接打开，蓝色突出（样式见 custom.css）。
+            href: "https://hub.mira-intelligence.com/",
+            label: "Hub",
+            position: "left",
+            target: "_self",
+            className: "navbar-hub-link",
+          },
           { to: "/docs/faq/troubleshooting", label: "FAQ", position: "left" },
           {
             href: "https://github.com/MIRA-Intelligence/mira",
