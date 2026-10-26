@@ -48,6 +48,24 @@
   letter-spacing: -0.01em;
 }
 
+/* 顶栏 Hub 入口：蓝色字体，不显示外链图标（同一标签页打开 hub.mira-intelligence.com） */
+.navbar-hub-link {
+  color: #2563eb;
+  font-weight: 600;
+}
+.navbar-hub-link:hover {
+  color: #1d4ed8;
+}
+[data-theme="dark"] .navbar-hub-link {
+  color: #60a5fa;
+}
+[data-theme="dark"] .navbar-hub-link:hover {
+  color: #93c5fd;
+}
+.navbar-hub-link svg {
+  display: none;
+}
+
 /* 文档页面外的容器更宽一点，更有"营销页"气质 */
 .main-wrapper > div:first-child {
   width: 100%;

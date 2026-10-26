@@ -15,9 +15,9 @@
     "message": "Quick Start",
     "description": "Navbar item with label 快速开始"
   },
-  "item.label.CLI": {
-    "message": "CLI",
-    "description": "Navbar item with label CLI"
+  "item.label.Hub": {
+    "message": "Hub",
+    "description": "Navbar item with label Hub"
   },
   "item.label.FAQ": {
     "message": "FAQ",
